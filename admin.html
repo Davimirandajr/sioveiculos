@@ -3,73 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Siow Veículos | Painel Seguro</title>
+    <title>Painel Admin | Siow Veículos</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --siow-gold: #f2c94c; }
+        :root { --siow-gold: #f2c94c; --siow-blue: #0a192f; }
         body { font-family: 'Montserrat', sans-serif; background: #020617; color: white; }
-        .gold-text { color: var(--siow-gold); }
-        .gold-bg { background-color: var(--siow-gold); }
-        .card-admin { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); }
-        .form-input { background: #0f172a; border: 1px solid #1e293b; padding: 0.75rem; border-radius: 0.5rem; width: 100%; color: white; outline: none; }
-        .form-input:focus { border-color: var(--siow-gold); }
-        #loginPage { background: radial-gradient(circle at center, #0a192f 0%, #020617 100%); }
-        .hidden { display: none; }
+        .tab-btn.active { border-bottom: 3px solid var(--siow-gold); color: var(--siow-gold); }
+        .card-admin { background: #0a192f; border: 1px solid rgba(255,255,255,0.05); }
+        input, select, textarea { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px; border-radius: 5px; outline: none; }
+        input:focus { border-color: var(--siow-gold); }
     </style>
 </head>
-<body>
+<body class="p-4 md:p-10">
 
-    <div id="loginPage" class="fixed inset-0 z-[100] flex items-center justify-center p-6">
-        <div class="max-w-md w-full card-admin p-10 rounded-3xl shadow-2xl border-t-4 border-[#f2c94c]">
-            <div class="text-center mb-8">
-                <h2 class="text-2xl font-black uppercase italic">Siow <span class="gold-text">Auth</span></h2>
-                <p class="text-gray-500 text-[10px] uppercase tracking-widest mt-2">Acesso Administrativo</p>
-            </div>
-            <form id="loginForm" class="space-y-4">
-                <input type="email" id="emailInput" class="form-input" placeholder="E-mail (criado no Firebase)" required>
-                <input type="password" id="passInput" class="form-input" placeholder="Sua Senha" required>
-                <button type="submit" class="w-full gold-bg text-black font-black py-4 rounded uppercase hover:brightness-110 transition">Entrar</button>
-            </form>
-            <p id="errorMsg" class="text-red-500 text-[10px] text-center mt-4 font-bold hidden uppercase italic">Erro ao acessar. Verifique os dados.</p>
+    <header class="flex justify-between items-center mb-10 border-b border-white/10 pb-6">
+        <div>
+            <h1 class="text-2xl font-black uppercase italic">Siow <span class="text-[#f2c94c]">Admin</span></h1>
+            <p class="text-gray-500 text-xs uppercase tracking-widest">Gestão de Estoque e Leads</p>
         </div>
+        <a href="index.html" class="text-xs bg-white/5 px-4 py-2 rounded hover:bg-white/10 transition">Ver Site <i class="fa fa-external-link-alt ml-1"></i></a>
+    </header>
+
+    <div class="flex gap-8 mb-8 border-b border-white/5">
+        <button onclick="switchTab('estoque')" id="btn-estoque" class="tab-btn active pb-4 font-bold uppercase text-sm">Estoque</button>
+        <button onclick="switchTab('avaliacoes')" id="btn-avaliacoes" class="tab-btn pb-4 font-bold uppercase text-sm flex items-center gap-2">
+            Avaliações <span id="badge-count" class="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full hidden">0</span>
+        </button>
     </div>
 
-    <div id="adminPanel" class="hidden p-6 lg:p-12">
-        <div class="max-w-7xl mx-auto">
-            <header class="flex justify-between items-center mb-12 border-b border-white/10 pb-6">
-                <h1 class="text-3xl font-black italic uppercase italic">Painel <span class="gold-text">Siow</span></h1>
-                <button id="btnSair" class="text-[10px] border border-red-500/50 text-red-500 px-4 py-2 rounded uppercase font-bold hover:bg-red-500 hover:text-white transition">Sair</button>
-            </header>
-
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div class="lg:col-span-1">
-                    <div class="card-admin p-6 rounded-2xl border-l-4 border-[#f2c94c]">
-                        <h2 class="font-bold mb-6 uppercase text-sm italic">Novo Veículo</h2>
-                        <form id="formEstoque" class="space-y-3">
-                            <input type="text" id="carNome" placeholder="Modelo" class="form-input text-xs" required>
-                            <input type="text" id="carPreco" placeholder="Preço" class="form-input text-xs" required>
-                            <input type="text" id="carImagem" placeholder="URL da Imagem" class="form-input text-xs" required>
-                            <button type="submit" class="w-full gold-bg text-black font-bold py-3 rounded text-xs uppercase">Publicar</button>
-                        </form>
-                    </div>
+    <div id="section-estoque" class="space-y-10">
+        <div class="card-admin p-6 rounded-xl">
+            <h2 class="text-lg font-bold mb-6 flex items-center gap-2"><i class="fa fa-plus-circle text-[#f2c94c]"></i> Cadastrar Novo Veículo</h2>
+            <form id="formEstoque" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <input type="text" id="nome" placeholder="Nome do Carro (Ex: Hilux SRX)" required>
+                <input type="text" id="preco" placeholder="Preço (Ex: 289.900)" required>
+                <input type="text" id="ano" placeholder="Ano (Ex: 2022/2023)" required>
+                <input type="text" id="km" placeholder="KM (Ex: 15.000)" required>
+                <select id="tipo">
+                    <option value="Venda">Venda Premium</option>
+                    <option value="Repasse">Repasse</option>
+                </select>
+                <div class="md:col-span-2">
+                    <input type="file" id="fotoFile" class="w-full text-xs" accept="image/*" required>
                 </div>
-
-                <div class="lg:col-span-2">
-                    <h2 class="text-xs font-black mb-6 uppercase tracking-widest opacity-50">Atividades Recentes</h2>
-                    <div id="listaGeral" class="space-y-4">
-                        </div>
-                </div>
-            </div>
+                <button type="submit" id="btnSalvar" class="bg-[#f2c94c] text-black font-black uppercase text-xs py-3 rounded hover:brightness-110 transition">Salvar Veículo</button>
+            </form>
         </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" id="listaEstoque">
+            </div>
+    </div>
+
+    <div id="section-avaliacoes" class="hidden space-y-6">
+        <h2 class="text-xl font-bold italic uppercase">Propostas Recebidas</h2>
+        <div id="listaAvaliacoes" class="grid grid-cols-1 gap-4">
+            </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, orderBy, query } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-storage.js";
 
-        // Configuração conforme sua imagem do console
         const firebaseConfig = {
             apiKey: "AIzaSyD1RhHfkUK4XDsIJCfQlBzP0xbFiE_tTcQ",
             authDomain: "sio-veiculos.firebaseapp.com",
@@ -80,52 +76,108 @@
         };
 
         const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
         const db = getFirestore(app);
+        const storage = getStorage(app);
 
-        // --- CONTROLE DE ACESSO ---
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                document.getElementById('loginPage').classList.add('hidden');
-                document.getElementById('adminPanel').classList.remove('hidden');
-                carregarDados();
-            } else {
-                document.getElementById('loginPage').classList.remove('hidden');
-                document.getElementById('adminPanel').classList.add('hidden');
-            }
-        });
+        // --- ABA SWITCH ---
+        window.switchTab = (tab) => {
+            document.getElementById('section-estoque').classList.toggle('hidden', tab !== 'estoque');
+            document.getElementById('section-avaliacoes').classList.toggle('hidden', tab !== 'avaliacoes');
+            document.getElementById('btn-estoque').classList.toggle('active', tab === 'estoque');
+            document.getElementById('btn-avaliacoes').classList.toggle('active', tab === 'avaliacoes');
+        };
 
-        // --- AÇÃO DE LOGIN ---
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        // --- GESTÃO DE ESTOQUE ---
+        const formEstoque = document.getElementById('formEstoque');
+        formEstoque.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = document.getElementById('emailInput').value;
-            const pass = document.getElementById('passInput').value;
+            const btn = document.getElementById('btnSalvar');
+            btn.disabled = true; btn.innerText = "SUBINDO IMAGEM...";
+
             try {
-                await signInWithEmailAndPassword(auth, email, pass);
-            } catch (err) {
-                document.getElementById('errorMsg').classList.remove('hidden');
-            }
+                const file = document.getElementById('fotoFile').files[0];
+                const sRef = ref(storage, `estoque/${Date.now()}_${file.name}`);
+                await uploadBytes(sRef, file);
+                const url = await getDownloadURL(sRef);
+
+                await addDoc(collection(db, "estoque"), {
+                    nome: document.getElementById('nome').value,
+                    preco: document.getElementById('preco').value,
+                    ano: document.getElementById('ano').value,
+                    km: document.getElementById('km').value,
+                    tipo: document.getElementById('tipo').value,
+                    imagem: url,
+                    criadoEm: new Date()
+                });
+
+                alert("Veículo cadastrado!");
+                formEstoque.reset();
+            } catch (err) { alert("Erro ao salvar."); }
+            btn.disabled = false; btn.innerText = "Salvar Veículo";
         });
 
-        // --- AÇÃO DE SAIR ---
-        document.getElementById('btnSair').addEventListener('click', () => signOut(auth));
-
-        // --- CARREGAR DADOS DO BANCO ---
-        function carregarDados() {
-            onSnapshot(collection(db, "avaliacoes"), (snap) => {
-                const list = document.getElementById('listaGeral');
-                list.innerHTML = '';
-                snap.forEach(doc => {
-                    const data = doc.data();
-                    list.innerHTML += `
-                        <div class="card-admin p-4 rounded-xl border-l-2 border-green-500">
-                            <p class="text-[10px] gold-text font-bold uppercase italic">${data.veiculo}</p>
-                            <p class="text-xs">Interessado: ${data.whatsapp}</p>
+        // --- LISTAR ESTOQUE ---
+        onSnapshot(query(collection(db, "estoque"), orderBy("criadoEm", "desc")), (snap) => {
+            const lista = document.getElementById('listaEstoque');
+            lista.innerHTML = '';
+            snap.forEach(d => {
+                const car = d.data();
+                lista.innerHTML += `
+                    <div class="card-admin rounded-lg overflow-hidden relative group">
+                        <img src="${car.imagem}" class="h-40 w-full object-cover opacity-50">
+                        <div class="p-4">
+                            <h4 class="font-bold text-sm uppercase">${car.nome}</h4>
+                            <p class="text-[#f2c94c] font-black text-lg">R$ ${car.preco}</p>
+                            <button onclick="excluirVeiculo('${d.id}')" class="mt-4 text-[10px] bg-red-600/20 text-red-500 px-3 py-1 rounded hover:bg-red-600 hover:text-white transition w-full uppercase font-bold">Excluir</button>
                         </div>
-                    `;
-                });
+                    </div>`;
             });
-        }
+        });
+
+        window.excluirVeiculo = async (id) => {
+            if(confirm("Deseja remover este veículo?")) await deleteDoc(doc(db, "estoque", id));
+        };
+
+        // --- LISTAR AVALIAÇÕES ---
+        onSnapshot(query(collection(db, "avaliacoes"), orderBy("dataEnvio", "desc")), (snap) => {
+            const lista = document.getElementById('listaAvaliacoes');
+            const badge = document.getElementById('badge-count');
+            lista.innerHTML = '';
+            
+            if(snap.size > 0) { badge.innerText = snap.size; badge.classList.remove('hidden'); }
+
+            snap.forEach(d => {
+                const av = d.data();
+                lista.innerHTML += `
+                    <div class="card-admin p-6 rounded-xl border-l-4 border-[#f2c94c] relative">
+                        <div class="flex flex-col md:flex-row justify-between gap-4">
+                            <div class="space-y-2">
+                                <span class="text-[10px] bg-[#f2c94c] text-black px-2 py-0.5 rounded font-bold">${av.dataEnvio || 'Recente'}</span>
+                                <h3 class="text-xl font-black uppercase italic">${av.veiculo}</h3>
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs text-gray-400 mt-4">
+                                    <p><b class="text-white">Ano:</b> ${av.ano}</p>
+                                    <p><b class="text-white">KM:</b> ${av.km}</p>
+                                    <p><b class="text-white">IPVA:</b> ${av.ipva}</p>
+                                    <p><b class="text-white">Doc:</b> ${av.documentacao}</p>
+                                    <p><b class="text-white">Chave:</b> ${av.chaveReserva}</p>
+                                </div>
+                                <p class="text-sm bg-black/40 p-3 rounded mt-2 border border-white/5"><b class="text-[#f2c94c]">Obs:</b> ${av.detalhes || 'Sem observações'}</p>
+                            </div>
+                            <div class="flex flex-col items-end gap-3">
+                                <a href="https://wa.me/55${av.whatsapp?.replace(/\D/g,'')}" target="_blank" class="bg-green-600 text-white px-6 py-3 rounded-lg font-bold text-xs uppercase flex items-center gap-2 hover:bg-green-700 transition w-full md:w-auto">
+                                    <i class="fab fa-whatsapp"></i> Chamar Cliente
+                                </a>
+                                <button onclick="excluirAvaliacao('${d.id}')" class="text-[10px] text-gray-600 hover:text-red-500 uppercase font-bold transition">Arquivar Proposta</button>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+        });
+
+        window.excluirAvaliacao = async (id) => {
+            if(confirm("Deseja arquivar esta proposta?")) await deleteDoc(doc(db, "avaliacoes", id));
+        };
+
     </script>
 </body>
 </html>
