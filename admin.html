@@ -4,6 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestão Siow | Admin</title>
+    <script>
+        (function() {
+            const senhaMestra = "1234"; // COLOQUE SUA SENHA AQUI
+            if (!sessionStorage.getItem('siow_auth')) {
+                let tentativa = prompt("Acesso Restrito - Digite a Senha:");
+                if (tentativa === senhaMestra) {
+                    sessionStorage.setItem('siow_auth', 'true');
+                } else {
+                    alert("Senha Incorreta!");
+                    window.location.href = 'index.html';
+                }
+            }
+        })();
+    </script>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
@@ -15,7 +30,6 @@
         .card-lead { background: rgba(255,255,255,0.03); border-left: 4px solid #f2c94c; transition: 0.3s; }
         .tag-repasse { color: #f2c94c; font-weight: 900; }
         .tag-venda { color: #22c55e; font-weight: 900; }
-        /* Scroll suave para mobile */
         .hide-scroll::-webkit-scrollbar { display: none; }
     </style>
 </head>
@@ -24,7 +38,7 @@
     <header class="bg-[#0a192f] border-b border-white/5 p-6 sticky top-0 z-50 shadow-xl">
         <div class="max-w-6xl mx-auto flex justify-between items-center">
             <h1 class="text-xl font-black italic uppercase tracking-tighter">Siow <span class="text-[#f2c94c]">Gestor</span></h1>
-            <a href="index.html" class="text-[10px] bg-white/5 px-3 py-2 rounded uppercase font-bold border border-white/10 hover:bg-white/10">Sair</a>
+            <button onclick="logout()" class="text-[10px] bg-red-600/10 text-red-500 px-3 py-2 rounded uppercase font-bold border border-red-500/20 hover:bg-red-600 hover:text-white transition">Sair do Painel</button>
         </div>
     </header>
 
@@ -43,14 +57,16 @@
                     <div class="bg-white/5 p-6 rounded-2xl border border-white/10 shadow-2xl sticky top-28">
                         <h2 class="text-lg font-bold mb-6 italic underline decoration-[#f2c94c]">Novo Veículo</h2>
                         <form id="formCadastro" class="space-y-4">
-                            <input type="text" id="nome" placeholder="Nome (Ex: Hilux)" class="input-admin" required>
-                            <input type="text" id="modelo" placeholder="Modelo (Ex: SRX 2.8 Diesel)" class="input-admin" required>
-                            <input type="text" id="marca" placeholder="Marca (Ex: Toyota)" class="input-admin" required>
+                            <input type="text" id="marca" placeholder="Marca (Ex: BMW)" class="input-admin" required>
+                            <input type="text" id="nome" placeholder="Nome (Ex: X6 M)" class="input-admin" required>
+                            <input type="text" id="modelo" placeholder="Versão (Ex: 4.4 V8 Biturbo)" class="input-admin" required>
+                            
                             <div class="grid grid-cols-2 gap-2">
-                                <input type="text" id="ano" placeholder="Ano (21/22)" class="input-admin" required>
+                                <input type="text" id="ano" placeholder="Ano (23/24)" class="input-admin" required>
                                 <input type="number" id="km" placeholder="KM" class="input-admin" required>
                             </div>
-                            <input type="text" id="preco" placeholder="Preço (Ex: 280.000)" class="input-admin" required>
+                            
+                            <input type="text" id="preco" placeholder="Preço (Ex: 850.000)" class="input-admin" required>
                             
                             <select id="tipo" class="input-admin" required>
                                 <option value="Venda">Venda Convencional</option>
@@ -63,14 +79,14 @@
                             </select>
 
                             <label class="flex items-center gap-2 text-xs font-bold uppercase text-orange-500 cursor-pointer p-2 bg-orange-500/5 rounded border border-orange-500/20">
-                                <input type="checkbox" id="ofertaFogo"> Ativar Oferta 🔥 (Foguinho)
+                                <input type="checkbox" id="ofertaFogo"> Ativar Oferta 🔥
                             </label>
 
                             <div class="p-4 border-2 border-dashed border-white/10 rounded-xl text-center">
                                 <input type="file" id="fotos" multiple accept="image/*" class="text-[10px]" required>
                             </div>
 
-                            <button type="submit" id="btnSalvar" class="w-full bg-[#f2c94c] text-black font-black py-4 rounded-xl uppercase hover:scale-105 transition">Publicar Agora</button>
+                            <button type="submit" id="btnSalvar" class="w-full bg-[#f2c94c] text-black font-black py-4 rounded-xl uppercase hover:scale-105 transition shadow-lg shadow-yellow-500/10">Publicar Agora</button>
                         </form>
                     </div>
                 </div>
@@ -83,14 +99,19 @@
         </section>
 
         <section id="tab-avaliacoes" class="hidden">
-            <h3 class="text-sm font-black uppercase mb-6 opacity-50 tracking-widest text-center lg:text-left">Clientes Aguardando Avaliação</h3>
-            <div id="listaLeads" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                </div>
+            <h3 class="text-sm font-black uppercase mb-6 opacity-50 tracking-widest text-center lg:text-left text-[#f2c94c]">Leads de Avaliação</h3>
+            <div id="listaLeads" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
         </section>
 
     </main>
 
     <script type="module">
+        // LOGOUT
+        window.logout = () => {
+            sessionStorage.removeItem('siow_auth');
+            window.location.href = 'index.html';
+        };
+
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-storage.js";
@@ -108,7 +129,6 @@
         const db = getFirestore(app);
         const storage = getStorage(app);
 
-        // --- NAVEGAÇÃO ENTRE ABAS ---
         window.switchTab = (tab) => {
             document.getElementById('tab-estoque').classList.toggle('hidden', tab !== 'estoque');
             document.getElementById('tab-avaliacoes').classList.toggle('hidden', tab !== 'avaliacoes');
@@ -116,13 +136,12 @@
             document.getElementById('btn-avaliacoes').classList.toggle('active', tab === 'avaliacoes');
         };
 
-        // --- CADASTRO DE ESTOQUE ---
         const form = document.getElementById('formCadastro');
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const files = document.getElementById('fotos').files;
             const btn = document.getElementById('btnSalvar');
-            btn.disabled = true; btn.innerText = "SUBINDO IMAGENS...";
+            const files = document.getElementById('fotos').files;
+            btn.disabled = true; btn.innerText = "ENVIANDO IMAGENS...";
 
             try {
                 const urls = [];
@@ -131,11 +150,10 @@
                     await uploadBytes(sRef, file);
                     urls.push(await getDownloadURL(sRef));
                 }
-
                 await addDoc(collection(db, "estoque"), {
+                    marca: document.getElementById('marca').value,
                     nome: document.getElementById('nome').value,
                     modelo: document.getElementById('modelo').value,
-                    marca: document.getElementById('marca').value,
                     ano: document.getElementById('ano').value,
                     km: document.getElementById('km').value,
                     preco: document.getElementById('preco').value,
@@ -145,37 +163,31 @@
                     imagens: urls,
                     criadoEm: new Date()
                 });
-
-                alert("Carro publicado!");
+                alert("Veículo Publicado!");
                 form.reset();
-            } catch (error) { alert("Erro ao salvar!"); }
+            } catch (err) { alert("Erro ao salvar."); }
             btn.disabled = false; btn.innerText = "Publicar Agora";
         });
 
-        // --- LISTAR ESTOQUE ---
         onSnapshot(query(collection(db, "estoque"), orderBy("criadoEm", "desc")), (snapshot) => {
             const container = document.getElementById('listaEstoque');
             container.innerHTML = '';
             snapshot.forEach(vDoc => {
                 const car = vDoc.data();
-                const corTipo = car.tipo === 'Repasse' ? 'tag-repasse' : 'tag-venda';
                 container.innerHTML += `
                     <div class="bg-white/5 border border-white/10 p-4 rounded-xl flex flex-col md:flex-row gap-4 items-center">
                         <img src="${car.imagens[0]}" class="w-full md:w-32 h-24 object-cover rounded-lg">
                         <div class="flex-1 text-center md:text-left">
                             <h4 class="font-black italic uppercase text-sm">${car.oferta ? '🔥' : ''} ${car.marca} ${car.nome}</h4>
-                            <p class="text-[10px] opacity-60">${car.modelo} | ${car.ano} | ${car.km}KM</p>
-                            <p class="text-xs ${corTipo} mt-1 uppercase">${car.tipo} | Garantia: ${car.garantia}</p>
+                            <p class="text-[10px] opacity-60">${car.modelo} | ${car.ano}</p>
+                            <p class="text-xs ${car.tipo === 'Repasse' ? 'tag-repasse' : 'tag-venda'} mt-1 uppercase">${car.tipo}</p>
                             <p class="text-sm font-bold gold-text">R$ ${car.preco}</p>
                         </div>
-                        <button onclick="deletarItem('estoque', '${vDoc.id}')" class="text-red-500 hover:bg-red-500/10 p-4 rounded-full transition">
-                            <i class="fa fa-trash"></i>
-                        </button>
+                        <button onclick="deletarItem('estoque', '${vDoc.id}')" class="text-red-500 p-4"><i class="fa fa-trash"></i></button>
                     </div>`;
             });
         });
 
-        // --- LISTAR AVALIAÇÕES (LEADS DOS CLIENTES) ---
         onSnapshot(query(collection(db, "avaliacoes"), orderBy("dataEnvio", "desc")), (snapshot) => {
             const container = document.getElementById('listaLeads');
             const counter = document.getElementById('countAv');
@@ -185,50 +197,33 @@
 
             snapshot.forEach(aDoc => {
                 const av = aDoc.data();
-                let miniaturas = '';
-                if(av.fotos) {
-                    av.fotos.forEach(img => {
-                        miniaturas += `<a href="${img}" target="_blank"><img src="${img}" class="w-12 h-12 object-cover rounded border border-white/20 hover:scale-110 transition"></a>`;
-                    });
-                }
+                let fotosHtml = '';
+                if(av.fotos) av.fotos.forEach(img => {
+                    fotosHtml += `<a href="${img}" target="_blank"><img src="${img}" class="w-12 h-12 object-cover rounded border border-white/10"></a>`;
+                });
 
                 container.innerHTML += `
-                    <div class="card-lead p-6 rounded-2xl relative">
+                    <div class="card-lead p-6 rounded-2xl">
                         <div class="flex justify-between mb-4">
-                            <span class="text-[9px] bg-[#f2c94c] text-black font-black px-2 py-1 rounded">NOVA AVALIAÇÃO</span>
-                            <span class="text-[9px] opacity-40">${av.dataEnvio}</span>
+                            <span class="text-[9px] bg-[#f2c94c] text-black font-black px-2 py-1 rounded">CLIENTE: ${av.whatsapp}</span>
                         </div>
-                        <h4 class="font-bold text-lg text-white mb-2 uppercase">${av.veiculo}</h4>
-                        <div class="grid grid-cols-2 gap-y-2 mb-4 text-[11px] uppercase">
-                            <p><span class="opacity-50">Ano:</span> ${av.ano}</p>
-                            <p><span class="opacity-50">KM:</span> ${av.km}</p>
-                            <p><span class="opacity-50">Doc:</span> ${av.documentacao}</p>
-                            <p><span class="opacity-50">IPVA:</span> ${av.ipva}</p>
+                        <h4 class="font-bold text-white mb-2 uppercase">${av.veiculo} (${av.ano})</h4>
+                        <div class="grid grid-cols-2 gap-2 text-[10px] uppercase opacity-70 mb-4">
+                            <p>IPVA: ${av.ipva}</p>
+                            <p>Doc: ${av.documentacao}</p>
                         </div>
-                        <p class="text-[10px] bg-black/40 p-2 rounded italic mb-4">"${av.detalhes || 'Sem observações'}"</p>
-                        
-                        <div class="flex flex-wrap gap-2 mb-6">
-                            ${miniaturas}
-                        </div>
-
+                        <div class="flex flex-wrap gap-2 mb-4">${fotosHtml}</div>
                         <div class="flex gap-2">
-                            <a href="https://wa.me/${av.whatsapp.replace(/\D/g,'')}" target="_blank" class="flex-1 bg-green-600 text-center py-2 rounded font-bold text-xs uppercase hover:bg-green-500">
-                                <i class="fab fa-whatsapp mr-2"></i> Responder
-                            </a>
-                            <button onclick="deletarItem('avaliacoes', '${aDoc.id}')" class="bg-white/5 px-4 rounded hover:bg-red-600/20 text-red-500">
-                                <i class="fa fa-trash"></i>
-                            </button>
+                            <a href="https://wa.me/${av.whatsapp.replace(/\D/g,'')}" target="_blank" class="flex-1 bg-green-600 text-center py-2 rounded font-black text-[10px] uppercase">Responder</a>
+                            <button onclick="deletarItem('avaliacoes', '${aDoc.id}')" class="bg-red-500/20 text-red-500 px-4 rounded"><i class="fa fa-trash"></i></button>
                         </div>
                     </div>`;
             });
         });
 
         window.deletarItem = async (col, id) => {
-            if(confirm("Deseja excluir permanentemente?")) {
-                await deleteDoc(doc(db, col, id));
-            }
+            if(confirm("Excluir?")) await deleteDoc(doc(db, col, id));
         };
-
     </script>
 </body>
 </html>
