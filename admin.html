@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Siow Admin | Nexus V12</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body { background-color: #020617; color: white; font-family: 'Montserrat', sans-serif; }
+        .sidebar { background-color: #0a192f; height: 100vh; position: fixed; width: 260px; border-right: 1px solid rgba(255,255,255,0.1); }
+        .main-content { margin-left: 260px; padding: 40px; }
+        .card-admin { background: #0f172a; border: 1px solid rgba(255,255,255,0.05); border-radius: 15px; padding: 20px; }
+        .btn-gold { background: linear-gradient(to right, #f2c94c, #ffd700); color: black; font-weight: 900; transition: 0.3s; }
+        .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(242, 201, 76, 0.2); }
+        input, select, textarea { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 12px; border-radius: 8px; width: 100%; outline: none; }
+        input:focus { border-color: #f2c94c; }
+        .tab-content { display: none; }
+        .active-tab { display: block; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar p-8 flex flex-col shadow-2xl">
+        <div class="mb-12">
+            <h2 class="text-2xl font-black italic text-[#f2c94c]">SIOW <span class="text-white font-normal">ADMIN</span></h2>
+            <p class="text-[9px] text-gray-500 uppercase tracking-widest mt-1 font-bold">Gerenciador de Estoque</p>
+        </div>
+        
+        <nav class="flex flex-col gap-6">
+            <button onclick="switchTab('estoque')" class="flex items-center gap-4 hover:text-[#f2c94c] transition text-[11px] font-bold uppercase tracking-widest text-left">
+                <i class="fa fa-car-side w-5 text-[#f2c94c]"></i> Gerenciar Estoque
+            </button>
+            <button onclick="switchTab('avaliacoes')" class="flex items-center gap-4 hover:text-[#f2c94c] transition text-[11px] font-bold uppercase tracking-widest text-left">
+                <i class="fa fa-id-card w-5 text-[#f2c94c]"></i> Leads de Avaliação
+            </button>
+        </nav>
+
+        <div class="mt-auto pt-6 border-t border-white/5">
+            <p class="text-[9px] text-gray-700 font-black uppercase">Nexus V12 System</p>
+        </div>
+    </div>
+
+    <main class="main-content">
+        
+        <div id="estoque" class="tab-content active-tab">
+            <div class="flex justify-between items-center mb-10">
+                <h1 class="text-3xl font-black italic uppercase italic">Painel de <span class="text-[#f2c94c]">Estoque</span></h1>
+                <button onclick="openModal()" class="btn-gold px-6 py-3 rounded-xl text-xs uppercase"><i class="fa fa-plus mr-2"></i> Adicionar Veículo</button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="listaEstoque">
+                </div>
+        </div>
+
+        <div id="avaliacoes" class="tab-content">
+            <h1 class="text-3xl font-black italic uppercase mb-10 italic">Clientes <span class="text-[#f2c94c]">Interessados</span></h1>
+            
+            <div class="card-admin overflow-hidden p-0 border border-white/5">
+                <table class="w-full text-left">
+                    <thead class="text-[10px] uppercase text-gray-500 bg-white/5 border-b border-white/5">
+                        <tr>
+                            <th class="p-5 font-black">Veículo</th>
+                            <th class="p-5 font-black">Contato</th>
+                            <th class="p-5 font-black">Detalhes</th>
+                            <th class="p-5 font-black">Fotos</th>
+                            <th class="p-5 font-black text-center">Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="listaLeads" class="text-sm">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <div id="modalCarro" class="fixed inset-0 bg-black/90 hidden z-[100] flex items-center justify-center p-6 backdrop-blur-sm">
+        <div class="bg-[#0a192f] w-full max-w-2xl p-10 rounded-3xl border border-white/10 max-h-[90vh] overflow-y-auto">
+            <h2 class="text-2xl font-black uppercase italic mb-8" id="modalTitle">Cadastrar Veículo</h2>
+            <form id="formCarro" class="grid grid-cols-2 gap-5">
+                <input type="hidden" id="carId">
+                <div class="col-span-2">
+                    <label class="text-[10px] uppercase font-bold text-gray-500 mb-2 block ml-1">Nome/Modelo do Carro</label>
+                    <input type="text" id="nome" placeholder="Ex: Hilux SRX 2.8 Diesel" required>
+                </div>
+                <div>
+                    <label class="text-[10px] uppercase font-bold text-gray-500 mb-2 block ml-1">Preço (R$)</label>
+                    <input type="text" id="preco" placeholder="Ex: 245.900" required>
+                </div>
+                <div>
+                    <label class="text-[10px] uppercase font-bold text-gray-500 mb-2 block ml-1">Tipo de Venda</label>
+                    <select id="tipo">
+                        <option value="Premium">Venda Premium</option>
+                        <option value="Repasse">Repasse Direto</option>
+                        <option value="Garantia">Com Garantia</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-[10px] uppercase font-bold text-gray-500 mb-2 block ml-1">Ano/Modelo</label>
+                    <input type="text" id="ano" placeholder="Ex: 2022/2023">
+                </div>
+                <div>
+                    <label class="text-[10px] uppercase font-bold text-gray-500 mb-2 block ml-1">KM</label>
+                    <input type="text" id="km" placeholder="Ex: 15.000">
+                </div>
+                <div class="col-span-2">
+                    <label class="text-[10px] uppercase font-bold text-gray-500 mb-2 block ml-1">Link da Imagem Principal</label>
+                    <input type="text" id="imagem" placeholder="https://imgur.com/link-da-foto.jpg">
+                </div>
+                <div class="col-span-2 text-right pt-4 flex gap-4">
+                    <button type="button" onclick="closeModal()" class="flex-1 bg-white/5 py-4 rounded-xl font-bold uppercase text-[10px]">Cancelar</button>
+                    <button type="submit" class="flex-1 btn-gold py-4 rounded-xl uppercase text-[10px]">Salvar Veículo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modalFotos" class="fixed inset-0 bg-black/95 hidden z-[110] flex items-center justify-center p-4">
+        <button onclick="closeFotos()" class="absolute top-10 right-10 text-white text-4xl">&times;</button>
+        <img id="imgFull" src="" class="max-w-full max-h-[85vh] rounded-xl shadow-2xl border border-white/10">
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+
+        // CONFIGURAÇÃO DO DAVI JR
+        const firebaseConfig = {
+            apiKey: "AIzaSyD1RhHfkUK4XDsIJCfQlBzP0xbFiE_tTcQ",
+            authDomain: "sio-veiculos.firebaseapp.com",
+            projectId: "sio-veiculos",
+            storageBucket: "sio-veiculos.firebasestorage.app",
+            messagingSenderId: "929393486658",
+            appId: "1:929393486658:web:b8587757c9e6e29a20f6db",
+            measurementId: "G-ZN1PSYE556"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // NAVEGAÇÃO
+        window.switchTab = (id) => {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active-tab'));
+            document.getElementById(id).classList.add('active-tab');
+        };
+
+        window.openModal = () => document.getElementById('modalCarro').classList.remove('hidden');
+        window.closeModal = () => {
+            document.getElementById('modalCarro').classList.add('hidden');
+            document.getElementById('formCarro').reset();
+            document.getElementById('carId').value = '';
+        };
+
+        window.verFoto = (url) => {
+            if(!url) return alert("Nenhuma foto enviada.");
+            document.getElementById('imgFull').src = url;
+            document.getElementById('modalFotos').classList.remove('hidden');
+        };
+        window.closeFotos = () => document.getElementById('modalFotos').classList.add('hidden');
+
+        // CRUD ESTOQUE
+        const form = document.getElementById('formCarro');
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('carId').value;
+            const data = {
+                nome: document.getElementById('nome').value,
+                preco: document.getElementById('preco').value,
+                tipo: document.getElementById('tipo').value,
+                ano: document.getElementById('ano').value,
+                km: document.getElementById('km').value,
+                imagem: document.getElementById('imagem').value,
+                data: new Date().toLocaleDateString()
+            };
+
+            if(id) {
+                await updateDoc(doc(db, "estoque", id), data);
+            } else {
+                await addDoc(collection(db, "estoque"), data);
+            }
+            closeModal();
+        });
+
+        // LISTAGEM EM TEMPO REAL: ESTOQUE
+        onSnapshot(collection(db, "estoque"), (snapshot) => {
+            const container = document.getElementById('listaEstoque');
+            container.innerHTML = '';
+            snapshot.forEach(d => {
+                const car = d.data();
+                container.innerHTML += `
+                    <div class="card-admin">
+                        <img src="${car.imagem}" class="w-full h-40 object-cover rounded-lg mb-4">
+                        <h3 class="font-bold italic uppercase">${car.nome}</h3>
+                        <p class="text-[10px] text-[#f2c94c] font-black mb-4 uppercase">${car.tipo} • R$ ${car.preco}</p>
+                        <div class="flex gap-2">
+                            <button onclick="editCar('${d.id}', \`${JSON.stringify(car)}\`)" class="flex-1 bg-white/5 p-2 rounded text-[9px] uppercase font-bold hover:bg-white/10 transition">Editar</button>
+                            <button onclick="deleteCar('${d.id}')" class="bg-red-500/10 p-2 rounded text-red-500 hover:bg-red-500/20"><i class="fa fa-trash"></i></button>
+                        </div>
+                    </div>
+                `;
+            });
+        });
+
+        // LISTAGEM EM TEMPO REAL: LEADS
+        onSnapshot(collection(db, "avaliacoes"), (snapshot) => {
+            const table = document.getElementById('listaLeads');
+            table.innerHTML = '';
+            snapshot.forEach(d => {
+                const lead = d.data();
+                table.innerHTML += `
+                    <tr class="border-b border-white/5 hover:bg-white/5">
+                        <td class="p-5 font-bold italic">${lead.veiculo}</td>
+                        <td class="p-5 text-[#f2c94c] font-mono">${lead.whatsapp}</td>
+                        <td class="p-5 text-gray-500 text-xs">${lead.ano} | ${lead.km} km</td>
+                        <td class="p-5">
+                            <button onclick="verFoto('${lead.fotoUrl}')" class="bg-blue-500/20 text-blue-400 p-2 rounded"><i class="fa fa-image"></i></button>
+                        </td>
+                        <td class="p-5 text-center">
+                            <a href="https://wa.me/${lead.whatsapp.replace(/\D/g,'')}" target="_blank" class="bg-green-500/20 text-green-500 px-4 py-2 rounded-lg text-xs font-bold italic">Chamar</a>
+                        </td>
+                    </tr>
+                `;
+            });
+        });
+
+        // FUNÇÕES GLOBAIS
+        window.deleteCar = async (id) => { if(confirm("Deseja remover do estoque?")) await deleteDoc(doc(db, "estoque", id)); };
+        window.editCar = (id, carJson) => {
+            const car = JSON.parse(carJson);
+            document.getElementById('carId').value = id;
+            document.getElementById('nome').value = car.nome;
+            document.getElementById('preco').value = car.preco;
+            document.getElementById('tipo').value = car.tipo;
+            document.getElementById('ano').value = car.ano;
+            document.getElementById('km').value = car.km;
+            document.getElementById('imagem').value = car.imagem;
+            openModal();
+        };
+    </script>
+</body>
+</html>
