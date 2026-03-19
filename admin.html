@@ -3,67 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Admin | Siow Veículos</title>
+    <title>Admin | Siow Veículos</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --siow-gold: #f2c94c; --siow-blue: #0a192f; }
-        body { font-family: 'Montserrat', sans-serif; background: #020617; color: white; }
-        .tab-btn.active { border-bottom: 3px solid var(--siow-gold); color: var(--siow-gold); }
-        .card-admin { background: #0a192f; border: 1px solid rgba(255,255,255,0.05); }
-        input, select, textarea { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px; border-radius: 5px; outline: none; }
-        input:focus { border-color: var(--siow-gold); }
+        body { background-color: #020617; color: white; font-family: 'Montserrat', sans-serif; }
+        .form-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 1rem; padding: 2rem; }
+        .input-admin { background: #0a192f; border: 1px solid #1e293b; padding: 0.75rem; border-radius: 0.5rem; width: 100%; color: white; outline: none; }
+        .input-admin:focus { border-color: #f2c94c; }
+        .btn-add { background: #f2c94c; color: black; font-weight: 800; padding: 1rem; border-radius: 0.5rem; width: 100%; transition: 0.3s; cursor: pointer; }
+        .btn-add:hover { background: #ffd700; transform: scale(1.02); }
     </style>
 </head>
-<body class="p-4 md:p-10">
+<body class="p-6 lg:p-20">
 
-    <header class="flex justify-between items-center mb-10 border-b border-white/10 pb-6">
-        <div>
-            <h1 class="text-2xl font-black uppercase italic">Siow <span class="text-[#f2c94c]">Admin</span></h1>
-            <p class="text-gray-500 text-xs uppercase tracking-widest">Gestão de Estoque e Leads</p>
+    <div class="max-w-4xl mx-auto">
+        <div class="flex justify-between items-center mb-10">
+            <h1 class="text-3xl font-black italic uppercase">Painel <span class="text-[#f2c94c]">Gestor</span></h1>
+            <a href="index.html" class="text-xs uppercase font-bold border-b border-[#f2c94c] pb-1">Ver Site Inicial</a>
         </div>
-        <a href="index.html" class="text-xs bg-white/5 px-4 py-2 rounded hover:bg-white/10 transition">Ver Site <i class="fa fa-external-link-alt ml-1"></i></a>
-    </header>
 
-    <div class="flex gap-8 mb-8 border-b border-white/5">
-        <button onclick="switchTab('estoque')" id="btn-estoque" class="tab-btn active pb-4 font-bold uppercase text-sm">Estoque</button>
-        <button onclick="switchTab('avaliacoes')" id="btn-avaliacoes" class="tab-btn pb-4 font-bold uppercase text-sm flex items-center gap-2">
-            Avaliações <span id="badge-count" class="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full hidden">0</span>
-        </button>
-    </div>
-
-    <div id="section-estoque" class="space-y-10">
-        <div class="card-admin p-6 rounded-xl">
-            <h2 class="text-lg font-bold mb-6 flex items-center gap-2"><i class="fa fa-plus-circle text-[#f2c94c]"></i> Cadastrar Novo Veículo</h2>
-            <form id="formEstoque" class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <input type="text" id="nome" placeholder="Nome do Carro (Ex: Hilux SRX)" required>
-                <input type="text" id="preco" placeholder="Preço (Ex: 289.900)" required>
-                <input type="text" id="ano" placeholder="Ano (Ex: 2022/2023)" required>
-                <input type="text" id="km" placeholder="KM (Ex: 15.000)" required>
-                <select id="tipo">
-                    <option value="Venda">Venda Premium</option>
-                    <option value="Repasse">Repasse</option>
+        <div class="form-card mb-12 shadow-2xl">
+            <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+                <i class="fa fa-car text-[#f2c94c]"></i> Cadastrar Novo Veículo
+            </h2>
+            <form id="formCadastro" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input type="text" id="nome" placeholder="Nome do Carro (Ex: BMW M3 Competition)" class="input-admin md:col-span-2" required>
+                
+                <input type="text" id="preco" placeholder="Preço (Ex: 450.000,00)" class="input-admin" required>
+                <input type="text" id="ano" placeholder="Ano (Ex: 2023/2024)" class="input-admin" required>
+                
+                <input type="number" id="km" placeholder="KM Atual" class="input-admin" required>
+                <select id="tipo" class="input-admin" required>
+                    <option value="Venda">Venda Convencional</option>
+                    <option value="Repasse">Oportunidade Repasse</option>
                 </select>
-                <div class="md:col-span-2">
-                    <input type="file" id="fotoFile" class="w-full text-xs" accept="image/*" required>
+
+                <div class="md:col-span-2 p-6 border-2 border-dashed border-white/10 rounded-xl text-center bg-black/20">
+                    <p class="text-xs font-bold uppercase text-gray-400 mb-2">Fotos do Veículo (Selecione várias)</p>
+                    <input type="file" id="fotos" multiple accept="image/*" class="text-xs cursor-pointer" required>
                 </div>
-                <button type="submit" id="btnSalvar" class="bg-[#f2c94c] text-black font-black uppercase text-xs py-3 rounded hover:brightness-110 transition">Salvar Veículo</button>
+
+                <button type="submit" id="btnSalvar" class="btn-add md:col-span-2 uppercase">Publicar no Estoque</button>
             </form>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" id="listaEstoque">
-            </div>
-    </div>
-
-    <div id="section-avaliacoes" class="hidden space-y-6">
-        <h2 class="text-xl font-bold italic uppercase">Propostas Recebidas</h2>
-        <div id="listaAvaliacoes" class="grid grid-cols-1 gap-4">
+        <h2 class="text-xl font-bold mb-6">Veículos Ativos</h2>
+        <div id="listaEstoque" class="grid gap-4">
             </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, orderBy, query } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-storage.js";
 
         const firebaseConfig = {
@@ -79,105 +71,81 @@
         const db = getFirestore(app);
         const storage = getStorage(app);
 
-        // --- ABA SWITCH ---
-        window.switchTab = (tab) => {
-            document.getElementById('section-estoque').classList.toggle('hidden', tab !== 'estoque');
-            document.getElementById('section-avaliacoes').classList.toggle('hidden', tab !== 'avaliacoes');
-            document.getElementById('btn-estoque').classList.toggle('active', tab === 'estoque');
-            document.getElementById('btn-avaliacoes').classList.toggle('active', tab === 'avaliacoes');
-        };
+        const form = document.getElementById('formCadastro');
+        const btn = document.getElementById('btnSalvar');
 
-        // --- GESTÃO DE ESTOQUE ---
-        const formEstoque = document.getElementById('formEstoque');
-        formEstoque.addEventListener('submit', async (e) => {
+        // --- SALVAR VEÍCULO ---
+        form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const btn = document.getElementById('btnSalvar');
-            btn.disabled = true; btn.innerText = "SUBINDO IMAGEM...";
+            const files = document.getElementById('fotos').files;
+            
+            if(files.length === 0) return alert("Selecione pelo menos uma foto!");
+
+            btn.disabled = true;
+            btn.innerText = "SUBINDO FOTOS... AGUARDE";
 
             try {
-                const file = document.getElementById('fotoFile').files[0];
-                const sRef = ref(storage, `estoque/${Date.now()}_${file.name}`);
-                await uploadBytes(sRef, file);
-                const url = await getDownloadURL(sRef);
+                const urlsImagens = [];
+                
+                // Upload de cada foto para o Storage
+                for(let file of files) {
+                    const storageRef = ref(storage, `estoque/${Date.now()}_${file.name}`);
+                    await uploadBytes(storageRef, file);
+                    const url = await getDownloadURL(storageRef);
+                    urlsImagens.push(url);
+                }
 
+                // Salva os dados no Firestore
                 await addDoc(collection(db, "estoque"), {
                     nome: document.getElementById('nome').value,
                     preco: document.getElementById('preco').value,
                     ano: document.getElementById('ano').value,
                     km: document.getElementById('km').value,
                     tipo: document.getElementById('tipo').value,
-                    imagem: url,
+                    imagens: urlsImagens,
                     criadoEm: new Date()
                 });
 
-                alert("Veículo cadastrado!");
-                formEstoque.reset();
-            } catch (err) { alert("Erro ao salvar."); }
-            btn.disabled = false; btn.innerText = "Salvar Veículo";
+                alert("Veículo cadastrado com sucesso!");
+                form.reset();
+            } catch (error) {
+                console.error(error);
+                alert("Erro ao cadastrar.");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Publicar no Estoque";
+            }
         });
 
-        // --- LISTAR ESTOQUE ---
-        onSnapshot(query(collection(db, "estoque"), orderBy("criadoEm", "desc")), (snap) => {
-            const lista = document.getElementById('listaEstoque');
-            lista.innerHTML = '';
-            snap.forEach(d => {
-                const car = d.data();
-                lista.innerHTML += `
-                    <div class="card-admin rounded-lg overflow-hidden relative group">
-                        <img src="${car.imagem}" class="h-40 w-full object-cover opacity-50">
-                        <div class="p-4">
-                            <h4 class="font-bold text-sm uppercase">${car.nome}</h4>
-                            <p class="text-[#f2c94c] font-black text-lg">R$ ${car.preco}</p>
-                            <button onclick="excluirVeiculo('${d.id}')" class="mt-4 text-[10px] bg-red-600/20 text-red-500 px-3 py-1 rounded hover:bg-red-600 hover:text-white transition w-full uppercase font-bold">Excluir</button>
-                        </div>
-                    </div>`;
-            });
-        });
-
-        window.excluirVeiculo = async (id) => {
-            if(confirm("Deseja remover este veículo?")) await deleteDoc(doc(db, "estoque", id));
-        };
-
-        // --- LISTAR AVALIAÇÕES ---
-        onSnapshot(query(collection(db, "avaliacoes"), orderBy("dataEnvio", "desc")), (snap) => {
-            const lista = document.getElementById('listaAvaliacoes');
-            const badge = document.getElementById('badge-count');
-            lista.innerHTML = '';
+        // --- LISTAR E DELETAR ---
+        onSnapshot(query(collection(db, "estoque"), orderBy("criadoEm", "desc")), (snapshot) => {
+            const container = document.getElementById('listaEstoque');
+            container.innerHTML = '';
             
-            if(snap.size > 0) { badge.innerText = snap.size; badge.classList.remove('hidden'); }
-
-            snap.forEach(d => {
-                const av = d.data();
-                lista.innerHTML += `
-                    <div class="card-admin p-6 rounded-xl border-l-4 border-[#f2c94c] relative">
-                        <div class="flex flex-col md:flex-row justify-between gap-4">
-                            <div class="space-y-2">
-                                <span class="text-[10px] bg-[#f2c94c] text-black px-2 py-0.5 rounded font-bold">${av.dataEnvio || 'Recente'}</span>
-                                <h3 class="text-xl font-black uppercase italic">${av.veiculo}</h3>
-                                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs text-gray-400 mt-4">
-                                    <p><b class="text-white">Ano:</b> ${av.ano}</p>
-                                    <p><b class="text-white">KM:</b> ${av.km}</p>
-                                    <p><b class="text-white">IPVA:</b> ${av.ipva}</p>
-                                    <p><b class="text-white">Doc:</b> ${av.documentacao}</p>
-                                    <p><b class="text-white">Chave:</b> ${av.chaveReserva}</p>
-                                </div>
-                                <p class="text-sm bg-black/40 p-3 rounded mt-2 border border-white/5"><b class="text-[#f2c94c]">Obs:</b> ${av.detalhes || 'Sem observações'}</p>
-                            </div>
-                            <div class="flex flex-col items-end gap-3">
-                                <a href="https://wa.me/55${av.whatsapp?.replace(/\D/g,'')}" target="_blank" class="bg-green-600 text-white px-6 py-3 rounded-lg font-bold text-xs uppercase flex items-center gap-2 hover:bg-green-700 transition w-full md:w-auto">
-                                    <i class="fab fa-whatsapp"></i> Chamar Cliente
-                                </a>
-                                <button onclick="excluirAvaliacao('${d.id}')" class="text-[10px] text-gray-600 hover:text-red-500 uppercase font-bold transition">Arquivar Proposta</button>
+            snapshot.forEach(vDoc => {
+                const car = vDoc.data();
+                container.innerHTML += `
+                    <div class="flex items-center justify-between bg-white/5 p-4 rounded-lg border border-white/5">
+                        <div class="flex items-center gap-4">
+                            <img src="${car.imagens[0]}" class="w-16 h-16 object-cover rounded">
+                            <div>
+                                <h4 class="font-bold text-sm">${car.nome}</h4>
+                                <p class="text-[10px] text-gray-500 uppercase">${car.tipo} | R$ ${car.preco}</p>
                             </div>
                         </div>
-                    </div>`;
+                        <button onclick="deletarCarro('${vDoc.id}')" class="text-red-500 hover:text-red-400 p-2">
+                            <i class="fa fa-trash"></i>
+                        </button>
+                    </div>
+                `;
             });
         });
 
-        window.excluirAvaliacao = async (id) => {
-            if(confirm("Deseja arquivar esta proposta?")) await deleteDoc(doc(db, "avaliacoes", id));
+        window.deletarCarro = async (id) => {
+            if(confirm("Deseja remover este veículo do estoque?")) {
+                await deleteDoc(doc(db, "estoque", id));
+            }
         };
-
     </script>
 </body>
 </html>
