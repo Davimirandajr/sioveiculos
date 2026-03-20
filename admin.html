@@ -104,52 +104,59 @@ import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from
 import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-storage.js";
 
-// 🔥 CONFIG UNIFICADA (MESMA DO SITE)
 const firebaseConfig = {
   apiKey: "AIzaSyB_Jq6sp_iawaphGXuyghtNzw0ZEevbf3M",
   authDomain: "siow-veiculos.firebaseapp.com",
   projectId: "siow-veiculos",
-  storageBucket: "siow-veiculos.appspot.com",
+  storageBucket: "siow-veiculos.firebasestorage.app",
   messagingSenderId: "30586457249",
-  appId: "1:30586457249:web:c58d23ee2f2b0e840c74e0"
+  appId: "1:30586457249:web:c58d23ee2f2b0e840c74e0",
+  measurementId: "G-XNBT9TQR91"
 };
 
-// INIT
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-// 🔐 LOGIN SYSTEM
+// 🔐 LOGIN
 onAuthStateChanged(auth, (user) => {
-    login-screen.classList.toggle('hidden', !!user);
-    admin-content.classList.toggle('hidden-auth', !user);
+    if (user) {
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('admin-content').classList.remove('hidden-auth');
+    } else {
+        document.getElementById('login-screen').classList.remove('hidden');
+        document.getElementById('admin-content').classList.add('hidden-auth');
+    }
 });
 
-btnLogin.onclick = async () => {
+document.getElementById('btnLogin').onclick = async () => {
+    const email = document.getElementById('login-email').value;
+    const senha = document.getElementById('login-senha').value;
+
     try {
-        await signInWithEmailAndPassword(auth, login-email.value, login-senha.value);
-    } catch {
-        alert("Login inválido");
+        await signInWithEmailAndPassword(auth, email, senha);
+    } catch (error) {
+        alert("Erro: login inválido no Firebase.");
     }
 };
 
-btnLogout.onclick = () => signOut(auth);
+document.getElementById('btnLogout').onclick = () => signOut(auth);
 
 // 🔄 TABS
 window.switchTab = (tab) => {
-    tab-estoque.classList.toggle('hidden', tab !== 'estoque');
-    tab-avaliacoes.classList.toggle('hidden', tab !== 'avaliacoes');
-    btn-estoque.classList.toggle('active', tab === 'estoque');
-    btn-avaliacoes.classList.toggle('active', tab === 'avaliacoes');
+    document.getElementById('tab-estoque').classList.toggle('hidden', tab !== 'estoque');
+    document.getElementById('tab-avaliacoes').classList.toggle('hidden', tab !== 'avaliacoes');
+    document.getElementById('btn-estoque').classList.toggle('active', tab === 'estoque');
+    document.getElementById('btn-avaliacoes').classList.toggle('active', tab === 'avaliacoes');
 };
 
-// 🚗 CADASTRO
-formCadastro.addEventListener('submit', async (e) => {
+// 🚗 CADASTRO DE CARRO
+document.getElementById('formCadastro').addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const btn = btnSalvar;
-    const files = fotos.files;
+    const btn = document.getElementById('btnSalvar');
+    const files = document.getElementById('fotos').files;
 
     btn.disabled = true;
     btn.innerText = "ENVIANDO...";
@@ -158,89 +165,102 @@ formCadastro.addEventListener('submit', async (e) => {
         const urls = [];
 
         for (let file of files) {
-            const fileRef = ref(storage, `estoque/${Date.now()}_${file.name}`);
-            await uploadBytes(fileRef, file);
-            urls.push(await getDownloadURL(fileRef));
+            const sRef = ref(storage, `estoque/${Date.now()}_${file.name}`);
+            await uploadBytes(sRef, file);
+            urls.push(await getDownloadURL(sRef));
         }
 
         await addDoc(collection(db, "estoque"), {
-            marca: marca.value,
-            nome: nome.value,
-            modelo: modelo.value,
-            ano: ano.value,
-            km: km.value,
-            preco: preco.value,
-            tipo: tipo.value,
-            garantia: garantia.value,
-            oferta: ofertaFogo.checked,
+            marca: document.getElementById('marca').value,
+            nome: document.getElementById('nome').value,
+            modelo: document.getElementById('modelo').value,
+            ano: document.getElementById('ano').value,
+            km: document.getElementById('km').value,
+            preco: document.getElementById('preco').value,
+            tipo: document.getElementById('tipo').value,
+            garantia: document.getElementById('garantia').value,
+            oferta: document.getElementById('ofertaFogo').checked,
             imagens: urls,
             criadoEm: new Date()
         });
 
-        alert("Carro publicado 🚀");
-        formCadastro.reset();
+        alert("Veículo publicado com sucesso!");
+        e.target.reset();
 
     } catch (err) {
+        alert("Erro ao salvar veículo.");
         console.error(err);
-        alert("Erro ao salvar");
     }
 
     btn.disabled = false;
     btn.innerText = "Publicar no Site";
 });
 
-// 📦 LISTA ESTOQUE
+// 📦 LISTAR ESTOQUE
 onSnapshot(query(collection(db, "estoque"), orderBy("criadoEm", "desc")), (snapshot) => {
-    listaEstoque.innerHTML = '';
+    const container = document.getElementById('listaEstoque');
+    container.innerHTML = '';
 
     snapshot.forEach(vDoc => {
         const car = vDoc.data();
 
-        listaEstoque.innerHTML += `
-            <div class="bg-white/5 p-4 rounded-xl flex gap-4 items-center">
-                <img src="${car.imagens?.[0] || ''}" class="w-32 h-24 object-cover rounded">
-                <div class="flex-1">
-                    <h4 class="font-bold">${car.oferta ? '🔥' : ''} ${car.marca} ${car.nome}</h4>
-                    <p class="text-xs opacity-60">${car.modelo} | ${car.ano} | ${car.km} KM</p>
-                    <p class="text-xs ${car.tipo === 'Repasse' ? 'tag-repasse' : 'tag-venda'}">${car.tipo}</p>
-                    <p class="gold-text font-bold">R$ ${car.preco}</p>
-                </div>
-                <button onclick="deletarItem('estoque','${vDoc.id}')" class="text-red-500">
-                    <i class="fa fa-trash"></i>
-                </button>
-            </div>`;
+        container.innerHTML += `
+        <div class="bg-white/5 border border-white/10 p-4 rounded-xl flex flex-col md:flex-row gap-4 items-center">
+            <img src="${car.imagens[0]}" class="w-full md:w-32 h-24 object-cover rounded-lg">
+            <div class="flex-1 text-center md:text-left">
+                <h4 class="font-black italic uppercase text-sm">${car.oferta ? '🔥' : ''} ${car.marca} ${car.nome}</h4>
+                <p class="text-[10px] opacity-60 uppercase">${car.modelo} | ${car.ano} | ${car.km} KM</p>
+                <p class="text-xs ${car.tipo === 'Repasse' ? 'tag-repasse' : 'tag-venda'} mt-1 uppercase">${car.tipo} | Garantia: ${car.garantia}</p>
+                <p class="text-sm font-bold gold-text">R$ ${car.preco}</p>
+            </div>
+            <button onclick="deletarItem('estoque', '${vDoc.id}')" class="text-red-500 hover:bg-red-500/10 p-4 rounded-full">
+                <i class="fa fa-trash"></i>
+            </button>
+        </div>`;
     });
 });
 
 // 📩 LEADS
 onSnapshot(query(collection(db, "avaliacoes"), orderBy("dataEnvio", "desc")), (snapshot) => {
-    listaLeads.innerHTML = '';
-    countAv.innerText = snapshot.size;
-    countAv.classList.toggle('hidden', snapshot.size === 0);
+    const container = document.getElementById('listaLeads');
+    const counter = document.getElementById('countAv');
+
+    container.innerHTML = '';
+    counter.innerText = snapshot.size;
+    counter.classList.toggle('hidden', snapshot.size === 0);
 
     snapshot.forEach(aDoc => {
         const av = aDoc.data();
 
-        listaLeads.innerHTML += `
-            <div class="card-lead p-6 rounded-xl">
-                <h4 class="font-bold">${av.veiculo}</h4>
-                <p class="text-xs">${av.whatsapp}</p>
-                <a href="https://wa.me/${av.whatsapp.replace(/\D/g,'')}" target="_blank"
-                    class="block mt-4 bg-green-600 text-center py-2 rounded">
-                    Responder
-                </a>
-                <button onclick="deletarItem('avaliacoes','${aDoc.id}')"
-                    class="mt-2 text-red-500">
-                    Excluir
-                </button>
-            </div>`;
+        let fotosHtml = '';
+        if (av.fotos) {
+            av.fotos.forEach(img => {
+                fotosHtml += `<img src="${img}" class="w-16 h-16 object-cover rounded">`;
+            });
+        }
+
+        container.innerHTML += `
+        <div class="card-lead p-6 rounded-2xl">
+            <h4 class="font-bold uppercase">${av.veiculo}</h4>
+            <p class="text-xs text-yellow-400">${av.whatsapp}</p>
+            <p class="text-xs opacity-60">${av.ano} | ${av.km} KM</p>
+            <div class="flex gap-2 mt-3">${fotosHtml}</div>
+            <div class="flex gap-2 mt-4">
+                <a href="https://wa.me/${av.whatsapp.replace(/\D/g,'')}" target="_blank" class="flex-1 bg-green-600 text-center py-2 rounded text-xs">WhatsApp</a>
+                <button onclick="deletarItem('avaliacoes', '${aDoc.id}')" class="bg-red-600 px-3 rounded">X</button>
+            </div>
+        </div>`;
     });
 });
 
-// 🗑 DELETE
+// 🗑️ DELETE
 window.deletarItem = async (col, id) => {
-    if(confirm("Excluir?")) {
-        await deleteDoc(doc(db, col, id));
+    if (confirm("Deseja excluir?")) {
+        try {
+            await deleteDoc(doc(db, col, id));
+        } catch (e) {
+            alert("Erro ao deletar.");
+        }
     }
 };
 </script>
