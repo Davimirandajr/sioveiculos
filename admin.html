@@ -3,18 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestão Siow | Admin Firestore</title>
+    <title>Gestão Siow | Admin Profissional</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { background-color: #020617; color: white; font-family: 'Montserrat', sans-serif; }
+        body { background-color: #020617; color: white; font-family: 'Montserrat', sans-serif; overflow-x: hidden; }
         .tab-btn.active { border-bottom: 3px solid #f2c94c; color: #f2c94c; }
         .input-admin { background: #0a192f; border: 1px solid #1e293b; padding: 0.75rem; border-radius: 0.5rem; width: 100%; color: white; outline: none; font-size: 14px; }
         .input-admin:focus { border-color: #f2c94c; }
-        .card-lead { background: rgba(255,255,255,0.03); border-left: 4px solid #f2c94c; }
+        .card-lead { background: rgba(255,255,255,0.03); border-left: 4px solid #f2c94c; border-radius: 1rem; }
         .hidden-auth { display: none !important; }
         .gold-text { color: #f2c94c; }
+        .img-lead { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); }
     </style>
 </head>
 <body class="pb-20">
@@ -22,60 +23,102 @@
     <section id="login-screen" class="fixed inset-0 z-[100] bg-[#020617] flex items-center justify-center p-6">
         <div class="max-w-md w-full bg-[#0a192f] p-8 rounded-3xl border border-white/10 shadow-2xl text-center">
             <h2 class="text-2xl font-black uppercase italic mb-2">Siow <span class="text-[#f2c94c]">Gestor</span></h2>
-            <p class="text-[10px] opacity-50 uppercase tracking-widest mb-8">Armazenamento via Firestore (Plano Free)</p>
+            <p class="text-[10px] opacity-50 uppercase tracking-widest mb-8">Acesso restrito ao administrador</p>
             <div class="space-y-4">
-                <input type="email" id="login-email" placeholder="E-mail" class="input-admin">
-                <input type="password" id="login-senha" placeholder="Senha" class="input-admin">
-                <button id="btnLogin" class="w-full bg-[#f2c94c] text-black font-black py-4 rounded-xl hover:bg-yellow-500 transition">ENTRAR</button>
+                <input type="email" id="login-email" placeholder="Seu e-mail do Firebase" class="input-admin">
+                <input type="password" id="login-senha" placeholder="Sua senha" class="input-admin">
+                <button id="btnLogin" class="w-full bg-[#f2c94c] text-black font-black py-4 rounded-xl uppercase hover:bg-yellow-500 transition">Entrar no Painel</button>
             </div>
         </div>
     </section>
 
     <div id="admin-content" class="hidden-auth">
-        <header class="bg-[#0a192f] border-b border-white/5 p-6 sticky top-0 z-50">
+        <header class="bg-[#0a192f] border-b border-white/5 p-6 sticky top-0 z-50 shadow-xl">
             <div class="max-w-6xl mx-auto flex justify-between items-center">
-                <h1 class="text-xl font-black italic text-[#f2c94c]">SIOW ADMIN</h1>
-                <button id="btnLogout" class="text-[10px] bg-red-600/10 text-red-500 px-4 py-2 rounded-lg font-bold border border-red-500/20">SAIR</button>
+                <h1 class="text-xl font-black italic uppercase tracking-tighter text-[#f2c94c]">Siow Admin</h1>
+                <button id="btnLogoutMain" class="text-[10px] bg-red-600/10 text-red-500 px-4 py-2 rounded-lg font-bold uppercase border border-red-500/20 hover:bg-red-600 transition">Sair</button>
             </div>
         </header>
 
-        <main class="max-w-6xl mx-auto p-4 lg:p-10">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div class="lg:col-span-1">
-                    <form id="formCadastro" class="bg-white/5 p-6 rounded-2xl border border-white/10 space-y-4">
-                        <h2 class="font-bold border-b border-[#f2c94c] pb-2">Novo Veículo</h2>
-                        <input type="text" id="marca" placeholder="Marca" class="input-admin" required>
-                        <input type="text" id="nome" placeholder="Nome do Carro" class="input-admin" required>
-                        <input type="text" id="preco" placeholder="Preço (Ex: 89.900)" class="input-admin" required>
-                        <input type="text" id="modelo" placeholder="Versão/Motor" class="input-admin" required>
-                        <div class="grid grid-cols-2 gap-2">
-                            <input type="text" id="ano" placeholder="Ano" class="input-admin" required>
-                            <input type="number" id="km" placeholder="KM" class="input-admin" required>
-                        </div>
-                        <select id="tipo" class="input-admin">
-                            <option value="Venda">Venda</option>
-                            <option value="Repasse">Repasse</option>
-                        </select>
-                        <div class="p-4 border-2 border-dashed border-white/10 rounded-xl bg-black/20 text-center">
-                            <p class="text-[10px] mb-2 opacity-50">FOTOS (MAX 3 - OTIMIZADAS)</p>
-                            <input type="file" id="fotos" multiple accept="image/*" class="text-[10px]">
-                        </div>
-                        <button type="submit" id="btnSalvar" class="w-full bg-[#f2c94c] text-black font-black py-4 rounded-xl uppercase">Publicar</button>
-                    </form>
-                </div>
+        <nav class="flex justify-center gap-8 bg-[#0a192f] border-b border-white/5 sticky top-[73px] z-40">
+            <button onclick="switchTab('estoque')" id="btn-estoque" class="tab-btn active py-4 px-6 text-xs uppercase font-black tracking-widest">Estoque</button>
+            <button onclick="switchTab('avaliacoes')" id="btn-avaliacoes" class="tab-btn py-4 px-6 text-xs uppercase font-black tracking-widest flex items-center gap-2">
+                Avaliações <span id="countAv" class="bg-red-600 text-[9px] px-1.5 py-0.5 rounded-full hidden">0</span>
+            </button>
+        </nav>
 
-                <div class="lg:col-span-2">
-                    <h3 class="text-xs font-black opacity-40 mb-4 uppercase">Estoque no Firestore</h3>
-                    <div id="listaEstoque" class="space-y-4"></div>
+        <main class="max-w-6xl mx-auto p-4 lg:p-10">
+            
+            <section id="tab-estoque">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-1">
+                        <div class="bg-white/5 p-6 rounded-2xl border border-white/10 shadow-2xl sticky top-40">
+                            <h2 class="text-lg font-bold mb-6 italic border-b border-[#f2c94c] inline-block uppercase">Novo Veículo</h2>
+                            <form id="formCadastro" class="space-y-4">
+                                <div class="grid grid-cols-2 gap-2">
+                                    <input type="text" id="marca" placeholder="Marca" class="input-admin" required>
+                                    <input type="text" id="nome" placeholder="Nome" class="input-admin" required>
+                                </div>
+                                <input type="text" id="modelo" placeholder="Versão/Motor" class="input-admin" required>
+                                
+                                <div class="grid grid-cols-2 gap-2">
+                                    <input type="text" id="ano" placeholder="Ano (Ex: 22/23)" class="input-admin" required>
+                                    <input type="number" id="km" placeholder="KM" class="input-admin" required>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-2">
+                                    <input type="text" id="preco" placeholder="Preço (Ex: 150.000)" class="input-admin" required>
+                                    <select id="tipo" class="input-admin" required>
+                                        <option value="Venda">Venda Convencional</option>
+                                        <option value="Repasse">Oportunidade Repasse</option>
+                                    </select>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-2">
+                                    <select id="garantia" class="input-admin">
+                                        <option value="Com Garantia">Com Garantia</option>
+                                        <option value="No Estado">No Estado</option>
+                                    </select>
+                                    <select id="chave" class="input-admin">
+                                        <option value="Possui Reserva">Possui Chave Reserva</option>
+                                        <option value="Não Possui">Não Possui Reserva</option>
+                                    </select>
+                                </div>
+
+                                <input type="text" id="detalhes" placeholder="Destaques (Ex: Teto Solar, Couro)" class="input-admin">
+
+                                <label class="flex items-center gap-2 text-xs font-bold uppercase text-orange-500 p-2 bg-orange-500/5 rounded border border-orange-500/20 cursor-pointer">
+                                    <input type="checkbox" id="ofertaFogo"> Ativar Oferta 🔥
+                                </label>
+
+                                <div class="p-4 border-2 border-dashed border-white/10 rounded-xl text-center bg-black/20">
+                                    <p class="text-[10px] uppercase font-bold mb-2 opacity-50">Fotos (Múltiplas)</p>
+                                    <input type="file" id="fotos" multiple accept="image/*" class="text-[10px]" required>
+                                </div>
+                                <button type="submit" id="btnSalvar" class="w-full bg-[#f2c94c] text-black font-black py-4 rounded-xl uppercase hover:scale-105 transition">Publicar Agora</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-2">
+                        <h3 class="text-sm font-black uppercase mb-6 opacity-40">Veículos Publicados</h3>
+                        <div id="listaEstoque" class="space-y-4"></div>
+                    </div>
                 </div>
-            </div>
+            </section>
+
+            <section id="tab-avaliacoes" class="hidden">
+                <h3 class="text-sm font-black uppercase mb-6 opacity-40 italic">Avaliações Recebidas pelo Site</h3>
+                <div id="listaLeads" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+            </section>
+
         </main>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBUXJgUdYaQIEKvsW2dvqN5SQNyJ-MY2v0",
@@ -83,40 +126,24 @@
             projectId: "sio-veiculos-sio",
             storageBucket: "sio-veiculos-sio.firebasestorage.app",
             messagingSenderId: "311148657897",
-            appId: "1:311148657897:web:9ad306adefab834a8c4478",
-            measurementId: "G-NDL3R8PMEK"
+            appId: "1:311148657897:web:9ad306adefab834a8c4478"
         };
 
         const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
         const db = getFirestore(app);
+        const auth = getAuth(app);
 
-        // --- FUNÇÃO PARA COMPRIMIR IMAGEM (BASE64) ---
-        const compressImage = (file) => {
-            return new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = (event) => {
-                    const img = new Image();
-                    img.src = event.target.result;
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        const MAX_WIDTH = 800; // Redimensiona para economizar espaço no Firestore
-                        const scaleSize = MAX_WIDTH / img.width;
-                        canvas.width = MAX_WIDTH;
-                        canvas.height = img.height * scaleSize;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                        // Exporta como string Base64 com qualidade 0.7 (70%)
-                        resolve(canvas.toDataURL('image/jpeg', 0.7));
-                    };
-                };
-            });
+        // --- AUTH ---
+        document.getElementById('btnLogin').onclick = async () => {
+            const email = document.getElementById('login-email').value;
+            const senha = document.getElementById('login-senha').value;
+            try { await signInWithEmailAndPassword(auth, email, senha); } catch(e) { alert("Credenciais Inválidas!"); }
         };
 
-        // 🔐 LOGIN
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
+        document.getElementById('btnLogoutMain').onclick = () => signOut(auth);
+
+        onAuthStateChanged(auth, user => {
+            if(user) {
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('admin-content').classList.remove('hidden-auth');
             } else {
@@ -125,75 +152,127 @@
             }
         });
 
-        document.getElementById('btnLogin').onclick = async () => {
-            const email = document.getElementById('login-email').value;
-            const senha = document.getElementById('login-senha').value;
-            try { await signInWithEmailAndPassword(auth, email, senha); } 
-            catch (e) { alert("Erro de login."); }
+        // --- COMPRESSOR DE IMAGEM ---
+        const compressImage = (file) => {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.src = e.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const width = 800;
+                        const scale = width / img.width;
+                        canvas.width = width;
+                        canvas.height = img.height * scale;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, canvas.height);
+                        resolve(canvas.toDataURL('image/jpeg', 0.6));
+                    };
+                };
+            });
         };
 
-        document.getElementById('btnLogout').onclick = () => signOut(auth);
-
-        // 🚗 SALVAR NO FIRESTORE
-        document.getElementById('formCadastro').addEventListener('submit', async (e) => {
+        // --- SALVAR CARRO NO ESTOQUE ---
+        document.getElementById('formCadastro').onsubmit = async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btnSalvar');
-            const files = document.getElementById('fotos').files;
-            
-            btn.disabled = true;
-            btn.innerText = "PROCESSANDO IMAGENS...";
+            btn.disabled = true; btn.innerText = "SINCROZINANDO...";
 
             try {
-                const base64Images = [];
-                for (let file of files) {
-                    const compressed = await compressImage(file);
-                    base64Images.push(compressed);
+                const files = document.getElementById('fotos').files;
+                const base64Imgs = [];
+                for(let f of files) {
+                    const compressed = await compressImage(f);
+                    base64Imgs.push(compressed);
                 }
 
                 await addDoc(collection(db, "estoque"), {
                     marca: document.getElementById('marca').value,
                     nome: document.getElementById('nome').value,
-                    preco: document.getElementById('preco').value,
                     modelo: document.getElementById('modelo').value,
                     ano: document.getElementById('ano').value,
                     km: document.getElementById('km').value,
+                    preco: document.getElementById('preco').value,
                     tipo: document.getElementById('tipo').value,
-                    imagens: base64Images, // Aqui as imagens entram como TEXTO
+                    garantia: document.getElementById('garantia').value,
+                    chave: document.getElementById('chave').value,
+                    detalhes: document.getElementById('detalhes').value,
+                    oferta: document.getElementById('ofertaFogo').checked,
+                    imagens: base64Imgs,
                     criadoEm: new Date()
                 });
 
-                alert("Sucesso! Salvo no Firestore.");
-                e.target.reset();
-            } catch (err) {
-                console.error(err);
-                alert("Erro ao salvar. Verifique o tamanho das fotos.");
-            }
-            btn.disabled = false;
-            btn.innerText = "Publicar";
-        });
+                alert("Veículo Online!"); e.target.reset();
+            } catch(err) { alert("Falha na conexão."); }
+            btn.disabled = false; btn.innerText = "Publicar Agora";
+        };
 
-        // 📦 LISTAGEM
+        // --- LISTAGEM DO ESTOQUE ---
         onSnapshot(query(collection(db, "estoque"), orderBy("criadoEm", "desc")), (snapshot) => {
             const container = document.getElementById('listaEstoque');
             container.innerHTML = '';
-            snapshot.forEach(vDoc => {
-                const car = vDoc.data();
+            snapshot.forEach(docSnap => {
+                const car = docSnap.data();
                 container.innerHTML += `
-                <div class="bg-white/5 border border-white/10 p-4 rounded-xl flex gap-4 items-center">
-                    <img src="${car.imagens[0]}" class="w-24 h-20 object-cover rounded shadow-lg">
-                    <div class="flex-1">
-                        <h4 class="font-bold text-sm uppercase">${car.marca} ${car.nome}</h4>
-                        <p class="text-[10px] opacity-50 italic">R$ ${car.preco} | ${car.ano}</p>
-                    </div>
-                    <button onclick="deletarItem('estoque', '${vDoc.id}')" class="text-red-500 p-2">
-                        <i class="fa fa-trash"></i>
-                    </button>
-                </div>`;
+                    <div class="bg-white/5 p-4 rounded-xl border border-white/10 flex justify-between items-center group">
+                        <div class="flex items-center gap-4">
+                            <img src="${car.imagens[0]}" class="w-16 h-12 object-cover rounded-lg border border-white/10">
+                            <div>
+                                <h4 class="font-bold text-[13px] uppercase">${car.nome} ${car.oferta ? '🔥' : ''}</h4>
+                                <p class="text-[10px] opacity-40 font-bold">${car.ano} • R$ ${car.preco}</p>
+                            </div>
+                        </div>
+                        <button onclick="deletarItem('estoque', '${docSnap.id}')" class="text-red-500 bg-red-500/10 p-2.5 rounded-lg opacity-0 group-hover:opacity-100 transition"><i class="fa fa-trash"></i></button>
+                    </div>`;
             });
         });
 
+        // --- LISTAGEM DE AVALIAÇÕES (LEADS) ---
+        onSnapshot(query(collection(db, "avaliacoes"), orderBy("dataEnvio", "desc")), (snapshot) => {
+            const container = document.getElementById('listaLeads');
+            const counter = document.getElementById('countAv');
+            container.innerHTML = '';
+            
+            if(snapshot.size > 0) {
+                counter.innerText = snapshot.size; counter.classList.remove('hidden');
+            } else { counter.classList.add('hidden'); }
+
+            snapshot.forEach(docSnap => {
+                const av = docSnap.data();
+                let fotos = '';
+                if(av.fotos) av.fotos.forEach(f => fotos += `<img src="${f}" class="img-lead">`);
+
+                container.innerHTML += `
+                    <div class="card-lead p-6 space-y-4">
+                        <div class="flex justify-between items-start">
+                            <h4 class="gold-text font-black uppercase text-sm">${av.veiculo}</h4>
+                            <button onclick="deletarItem('avaliacoes', '${docSnap.id}')" class="text-red-500 text-[10px] font-black uppercase">Excluir</button>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-[10px] font-bold uppercase">
+                            <p><span class="opacity-40">KM:</span> ${av.km}</p>
+                            <p><span class="opacity-40">Ano:</span> ${av.ano}</p>
+                            <p><span class="opacity-40">IPVA:</span> ${av.ipva}</p>
+                            <p><span class="opacity-40">Doc:</span> ${av.doc}</p>
+                        </div>
+                        <div class="bg-black/40 p-3 rounded-lg text-[10px] border border-white/5 italic">"${av.detalhes || 'Sem obs.'}"</div>
+                        <div class="flex flex-wrap gap-2">${fotos}</div>
+                        <a href="https://wa.me/55${av.whatsapp.replace(/\D/g,'')}" target="_blank" class="block w-full bg-green-600 text-center py-3 rounded-lg font-black text-xs uppercase hover:bg-green-500 transition">Atender via WhatsApp</a>
+                    </div>`;
+            });
+        });
+
+        // --- UTILITÁRIOS ---
         window.deletarItem = async (col, id) => {
-            if (confirm("Excluir carro?")) await deleteDoc(doc(db, col, id));
+            if(confirm("Remover permanentemente?")) await deleteDoc(doc(db, col, id));
+        };
+
+        window.switchTab = (tab) => {
+            document.querySelectorAll('section[id^="tab-"]').forEach(s => s.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`tab-${tab}`).classList.remove('hidden');
+            document.getElementById(`btn-${tab}`).classList.add('active');
         };
     </script>
 </body>
