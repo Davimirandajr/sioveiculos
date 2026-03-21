@@ -188,45 +188,49 @@
         const vitrine = document.getElementById('vitrineEstoque');
 
         // Snapshot do Banco
-        onSnapshot(query(collection(db, "estoque"), orderBy("criadoEm", "desc")), (snapshot) => {
-            window.estoqueData = [];
-            vitrine.innerHTML = '';
-            snapshot.forEach(docSnap => {
-                const car = { id: docSnap.id, ...docSnap.data() };
-                window.estoqueData.push(car);
-                renderCard(car);
-            });
-            initSwipers();
-        });
+       onSnapshot(query(collection(db, "estoque"), orderBy("criadoEm", "desc")), (snapshot) => {
+    window.estoqueData = [];
+    let htmlAcumulado = ''; // Criamos uma string para guardar todos os cards
+    
+    snapshot.forEach(docSnap => {
+        const car = { id: docSnap.id, ...docSnap.data() };
+        window.estoqueData.push(car);
+        
+        // Em vez de dar innerHTML em cada volta, acumulamos na string
+        htmlAcumulado += criarTemplateCard(car); 
+    });
+    
+    vitrine.innerHTML = htmlAcumulado; // Injeta todos de uma vez
+    initSwipers();
+});
 
-        // CARD RESUMIDO (O que você pediu: Essencial)
-        function renderCard(car) {
-            const tagClass = car.tipo === 'Repasse' ? 'tag-repasse' : 'tag-venda';
-            const etiquetaTexto = car.tipo === 'Repasse' ? 'REPASSE' : 'COM GARANTIA';
-            
-            vitrine.innerHTML += `
-                <div class="bg-[#0a192f] border border-white/5 rounded-lg overflow-hidden shadow-2xl relative group cursor-pointer" onclick="abrirDetalhes('${car.id}')">
-                    <div class="relative h-64 bg-gray-900 overflow-hidden">
-                        <div class="${tagClass}">${etiquetaTexto}</div>
-                        <img src="${car.imagens[0]}" class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
+// Crie esta função auxiliar para gerar o texto do HTML
+function criarTemplateCard(car) {
+    const tagClass = car.tipo === 'Repasse' ? 'tag-repasse' : 'tag-venda';
+    const etiquetaTexto = car.tipo === 'Repasse' ? 'REPASSE' : 'COM GARANTIA';
+    
+    return `
+        <div class="bg-[#0a192f] border border-white/5 rounded-lg overflow-hidden shadow-2xl relative group cursor-pointer" onclick="abrirDetalhes('${car.id}')">
+            <div class="relative h-64 bg-gray-900 overflow-hidden">
+                <div class="${tagClass}">${etiquetaTexto}</div>
+                <img src="${car.imagens[0]}" class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
+            </div>
+            <div class="p-5">
+                <h3 class="text-lg font-bold italic uppercase tracking-tighter truncate">${car.nome}</h3>
+                <div class="flex gap-4 text-[10px] text-gray-500 uppercase mt-2 font-bold italic">
+                    <span>${car.ano}</span>
+                    <span>${car.km} KM</span>
+                </div>
+                <div class="flex justify-between items-center mt-6">
+                    <div>
+                        <p class="text-[9px] text-gray-500 uppercase font-bold">VALOR</p>
+                        <p class="gold-text text-xl font-black italic">R$ ${car.preco}</p>
                     </div>
-                    <div class="p-5">
-                        <h3 class="text-lg font-bold italic uppercase tracking-tighter truncate">${car.nome}</h3>
-                        <div class="flex gap-4 text-[10px] text-gray-500 uppercase mt-2 font-bold italic">
-                            <span>${car.ano}</span>
-                            <span>${car.km} KM</span>
-                        </div>
-                        <div class="flex justify-between items-center mt-6">
-                            <div>
-                                <p class="text-[9px] text-gray-500 uppercase font-bold">VALOR</p>
-                                <p class="gold-text text-xl font-black italic">R$ ${car.preco}</p>
-                            </div>
-                            <span class="bg-white/5 px-4 py-2 rounded text-[9px] uppercase font-bold border border-white/10 group-hover:border-yellow-500/50">+ Ver Detalhes</span>
-                        </div>
-                    </div>
-                </div>`;
-        }
-
+                    <span class="bg-white/5 px-4 py-2 rounded text-[9px] uppercase font-bold border border-white/10 group-hover:border-yellow-500/50">+ Ver Detalhes</span>
+                </div>
+            </div>
+        </div>`;
+}
         // PÁGINA INTERNA (MODAL)
         window.abrirDetalhes = (id) => {
             const car = window.estoqueData.find(c => c.id === id);
