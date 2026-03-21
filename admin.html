@@ -16,6 +16,7 @@
         .hidden-auth { display: none !important; }
         .gold-text { color: #f2c94c; }
         .img-lead { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); }
+        .btn-edit { color: #f2c94c; background: rgba(242, 201, 76, 0.1); }
     </style>
 </head>
 <body class="pb-20">
@@ -25,7 +26,7 @@
             <h2 class="text-2xl font-black uppercase italic mb-2">Sio <span class="text-[#f2c94c]">Gestor</span></h2>
             <p class="text-[10px] opacity-50 uppercase tracking-widest mb-8">Acesso restrito ao administrador</p>
             <div class="space-y-4">
-                <input type="email" id="login-email" placeholder="Seu e-mail do Firebase" class="input-admin">
+                <input type="email" id="login-email" placeholder="Seu e-mail" class="input-admin">
                 <input type="password" id="login-senha" placeholder="Sua senha" class="input-admin">
                 <button id="btnLogin" class="w-full bg-[#f2c94c] text-black font-black py-4 rounded-xl uppercase hover:bg-yellow-500 transition">Entrar no Painel</button>
             </div>
@@ -41,9 +42,9 @@
         </header>
 
         <nav class="flex justify-center gap-8 bg-[#0a192f] border-b border-white/5 sticky top-[73px] z-40">
-            <button onclick="switchTab('estoque')" id="btn-estoque" class="tab-btn active py-4 px-6 text-xs uppercase font-black tracking-widest">Estoque</button>
+            <button onclick="switchTab('estoque')" id="btn-estoque" class="tab-btn active py-4 px-6 text-xs uppercase font-black tracking-widest">Estoque & Edição</button>
             <button onclick="switchTab('avaliacoes')" id="btn-avaliacoes" class="tab-btn py-4 px-6 text-xs uppercase font-black tracking-widest flex items-center gap-2">
-                Avaliações <span id="countAv" class="bg-red-600 text-[9px] px-1.5 py-0.5 rounded-full hidden">0</span>
+                Simulações <span id="countAv" class="bg-red-600 text-[9px] px-1.5 py-0.5 rounded-full hidden">0</span>
             </button>
         </nav>
 
@@ -53,8 +54,9 @@
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div class="lg:col-span-1">
                         <div class="bg-white/5 p-6 rounded-2xl border border-white/10 shadow-2xl sticky top-40">
-                            <h2 class="text-lg font-bold mb-6 italic border-b border-[#f2c94c] inline-block uppercase">Novo Veículo</h2>
+                            <h2 id="formTitle" class="text-lg font-bold mb-6 italic border-b border-[#f2c94c] inline-block uppercase">Novo Veículo</h2>
                             <form id="formCadastro" class="space-y-4">
+                                <input type="hidden" id="edit-id">
                                 <div class="grid grid-cols-2 gap-2">
                                     <input type="text" id="marca" placeholder="Marca" class="input-admin" required>
                                     <input type="text" id="nome" placeholder="Nome" class="input-admin" required>
@@ -62,53 +64,43 @@
                                 <input type="text" id="modelo" placeholder="Versão/Motor" class="input-admin" required>
                                 
                                 <div class="grid grid-cols-2 gap-2">
-                                    <input type="text" id="ano" placeholder="Ano (Ex: 22/23)" class="input-admin" required>
+                                    <input type="text" id="ano" placeholder="Ano" class="input-admin" required>
                                     <input type="number" id="km" placeholder="KM" class="input-admin" required>
                                 </div>
 
                                 <div class="grid grid-cols-2 gap-2">
-                                    <input type="text" id="preco" placeholder="Preço (Ex: 150.000)" class="input-admin" required>
+                                    <input type="text" id="preco" placeholder="Preço" class="input-admin" required>
                                     <select id="tipo" class="input-admin" required>
-                                        <option value="Venda">Venda Convencional</option>
-                                        <option value="Repasse">Oportunidade Repasse</option>
+                                        <option value="Venda">Venda</option>
+                                        <option value="Repasse">Repasse</option>
                                     </select>
                                 </div>
 
-                                <div class="grid grid-cols-2 gap-2">
-                                    <select id="garantia" class="input-admin">
-                                        <option value="Com Garantia">Com Garantia</option>
-                                        <option value="No Estado">No Estado</option>
-                                    </select>
-                                    <select id="chave" class="input-admin">
-                                        <option value="Possui Reserva">Possui Chave Reserva</option>
-                                        <option value="Não Possui">Não Possui Reserva</option>
-                                    </select>
-                                </div>
-
-                                <input type="text" id="detalhes" placeholder="Destaques (Ex: Teto Solar, Couro)" class="input-admin">
+                                <input type="text" id="detalhes" placeholder="Destaques" class="input-admin">
 
                                 <label class="flex items-center gap-2 text-xs font-bold uppercase text-orange-500 p-2 bg-orange-500/5 rounded border border-orange-500/20 cursor-pointer">
                                     <input type="checkbox" id="ofertaFogo"> Ativar Oferta 🔥
                                 </label>
 
                                 <div class="p-4 border-2 border-dashed border-white/10 rounded-xl text-center bg-black/20">
-                                    <p class="text-[10px] uppercase font-bold mb-2 opacity-50">Fotos (Múltiplas)</p>
-                                    <input type="file" id="fotos" multiple accept="image/*" class="text-[10px]" required>
+                                    <p class="text-[10px] uppercase font-bold mb-2 opacity-50">Fotos (Mínimo 3)</p>
+                                    <input type="file" id="fotos" multiple accept="image/*" class="text-[10px]">
                                 </div>
                                 <button type="submit" id="btnSalvar" class="w-full bg-[#f2c94c] text-black font-black py-4 rounded-xl uppercase hover:scale-105 transition">Publicar Agora</button>
+                                <button type="button" id="btnCancelarEdit" class="hidden w-full text-white/40 text-[10px] uppercase font-bold mt-2">Cancelar Edição</button>
                             </form>
                         </div>
                     </div>
 
                     <div class="lg:col-span-2">
-                        <h3 class="text-sm font-black uppercase mb-6 opacity-40">Veículos Publicados</h3>
+                        <h3 class="text-sm font-black uppercase mb-6 opacity-40 italic">Veículos Publicados</h3>
                         <div id="listaEstoque" class="space-y-4"></div>
                     </div>
                 </div>
             </section>
 
             <section id="tab-avaliacoes" class="hidden">
-                <h3 class="text-sm font-black uppercase mb-6 opacity-40 italic">Avaliações Recebidas pelo Site</h3>
+                <h3 class="text-sm font-black uppercase mb-6 opacity-40 italic">Leads: Avaliações e Simulações</h3>
                 <div id="listaLeads" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
             </section>
 
@@ -117,7 +109,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, updateDoc, onSnapshot, query, orderBy, deleteDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
 
         const firebaseConfig = {
@@ -137,22 +129,16 @@
         document.getElementById('btnLogin').onclick = async () => {
             const email = document.getElementById('login-email').value;
             const senha = document.getElementById('login-senha').value;
-            try { await signInWithEmailAndPassword(auth, email, senha); } catch(e) { alert("Credenciais Inválidas!"); }
+            try { await signInWithEmailAndPassword(auth, email, senha); } catch(e) { alert("Acesso Negado!"); }
         };
-
         document.getElementById('btnLogoutMain').onclick = () => signOut(auth);
-
         onAuthStateChanged(auth, user => {
-            if(user) {
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('admin-content').classList.remove('hidden-auth');
-            } else {
-                document.getElementById('login-screen').classList.remove('hidden');
-                document.getElementById('admin-content').classList.add('hidden-auth');
-            }
+            const content = document.getElementById('admin-content');
+            const login = document.getElementById('login-screen');
+            user ? (content.classList.remove('hidden-auth'), login.classList.add('hidden')) : (content.classList.add('hidden-auth'), login.classList.remove('hidden'));
         });
 
-        // --- COMPRESSOR DE IMAGEM ---
+        // --- COMPRESSOR ---
         const compressImage = (file) => {
             return new Promise((resolve) => {
                 const reader = new FileReader();
@@ -174,21 +160,20 @@
             });
         };
 
-        // --- SALVAR CARRO NO ESTOQUE ---
-        document.getElementById('formCadastro').onsubmit = async (e) => {
+        // --- SALVAR / EDITAR ---
+        const form = document.getElementById('formCadastro');
+        form.onsubmit = async (e) => {
             e.preventDefault();
+            const editId = document.getElementById('edit-id').value;
             const btn = document.getElementById('btnSalvar');
-            btn.disabled = true; btn.innerText = "SINCROZINANDO...";
+            const files = document.getElementById('fotos').files;
+            
+            if(!editId && files.length < 3) return alert("Por favor, selecione ao menos 3 fotos!");
+
+            btn.disabled = true; btn.innerText = "PROCESSANDO...";
 
             try {
-                const files = document.getElementById('fotos').files;
-                const base64Imgs = [];
-                for(let f of files) {
-                    const compressed = await compressImage(f);
-                    base64Imgs.push(compressed);
-                }
-
-                await addDoc(collection(db, "estoque"), {
+                let data = {
                     marca: document.getElementById('marca').value,
                     nome: document.getElementById('nome').value,
                     modelo: document.getElementById('modelo').value,
@@ -196,20 +181,30 @@
                     km: document.getElementById('km').value,
                     preco: document.getElementById('preco').value,
                     tipo: document.getElementById('tipo').value,
-                    garantia: document.getElementById('garantia').value,
-                    chave: document.getElementById('chave').value,
                     detalhes: document.getElementById('detalhes').value,
-                    oferta: document.getElementById('ofertaFogo').checked,
-                    imagens: base64Imgs,
-                    criadoEm: new Date()
-                });
+                    oferta: document.getElementById('ofertaFogo').checked
+                };
 
-                alert("Veículo Online!"); e.target.reset();
-            } catch(err) { alert("Falha na conexão."); }
-            btn.disabled = false; btn.innerText = "Publicar Agora";
+                if(files.length > 0) {
+                    const base64Imgs = [];
+                    for(let f of files) base64Imgs.push(await compressImage(f));
+                    data.imagens = base64Imgs;
+                }
+
+                if(editId) {
+                    await updateDoc(doc(db, "estoque", editId), data);
+                    alert("Atualizado com sucesso!");
+                } else {
+                    data.criadoEm = new Date();
+                    await addDoc(collection(db, "estoque"), data);
+                    alert("Publicado com sucesso!");
+                }
+                resetForm();
+            } catch(err) { alert("Erro ao salvar."); }
+            btn.disabled = false;
         };
 
-        // --- LISTAGEM DO ESTOQUE ---
+        // --- LISTAGEM ESTOQUE ---
         onSnapshot(query(collection(db, "estoque"), orderBy("criadoEm", "desc")), (snapshot) => {
             const container = document.getElementById('listaEstoque');
             container.innerHTML = '';
@@ -218,26 +213,27 @@
                 container.innerHTML += `
                     <div class="bg-white/5 p-4 rounded-xl border border-white/10 flex justify-between items-center group">
                         <div class="flex items-center gap-4">
-                            <img src="${car.imagens[0]}" class="w-16 h-12 object-cover rounded-lg border border-white/10">
+                            <img src="${car.imagens[0]}" class="w-16 h-12 object-cover rounded-lg">
                             <div>
-                                <h4 class="font-bold text-[13px] uppercase">${car.nome} ${car.oferta ? '🔥' : ''}</h4>
+                                <h4 class="font-bold text-[13px] uppercase">${car.nome}</h4>
                                 <p class="text-[10px] opacity-40 font-bold">${car.ano} • R$ ${car.preco}</p>
                             </div>
                         </div>
-                        <button onclick="deletarItem('estoque', '${docSnap.id}')" class="text-red-500 bg-red-500/10 p-2.5 rounded-lg opacity-0 group-hover:opacity-100 transition"><i class="fa fa-trash"></i></button>
+                        <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition">
+                            <button onclick="editarCarro('${docSnap.id}')" class="btn-edit p-2.5 rounded-lg"><i class="fa fa-edit"></i></button>
+                            <button onclick="deletarItem('estoque', '${docSnap.id}')" class="text-red-500 bg-red-500/10 p-2.5 rounded-lg"><i class="fa fa-trash"></i></button>
+                        </div>
                     </div>`;
             });
         });
 
-        // --- LISTAGEM DE AVALIAÇÕES (LEADS) ---
+        // --- LISTAGEM LEADS (UNIFICADO) ---
         onSnapshot(query(collection(db, "avaliacoes"), orderBy("dataEnvio", "desc")), (snapshot) => {
             const container = document.getElementById('listaLeads');
             const counter = document.getElementById('countAv');
             container.innerHTML = '';
-            
-            if(snapshot.size > 0) {
-                counter.innerText = snapshot.size; counter.classList.remove('hidden');
-            } else { counter.classList.add('hidden'); }
+            counter.innerText = snapshot.size;
+            snapshot.size > 0 ? counter.classList.remove('hidden') : counter.classList.add('hidden');
 
             snapshot.forEach(docSnap => {
                 const av = docSnap.data();
@@ -247,25 +243,55 @@
                 container.innerHTML += `
                     <div class="card-lead p-6 space-y-4">
                         <div class="flex justify-between items-start">
-                            <h4 class="gold-text font-black uppercase text-sm">${av.veiculo}</h4>
-                            <button onclick="deletarItem('avaliacoes', '${docSnap.id}')" class="text-red-500 text-[10px] font-black uppercase">Excluir</button>
+                            <span class="bg-white/10 text-[8px] px-2 py-1 rounded uppercase font-black">${av.tipoLead || 'Avaliação'}</span>
+                            <button onclick="deletarItem('avaliacoes', '${docSnap.id}')" class="text-red-500 text-[10px] font-black">EXCLUIR</button>
                         </div>
+                        <h4 class="gold-text font-black uppercase text-sm">${av.veiculo}</h4>
                         <div class="grid grid-cols-2 gap-2 text-[10px] font-bold uppercase">
-                            <p><span class="opacity-40">KM:</span> ${av.km}</p>
-                            <p><span class="opacity-40">Ano:</span> ${av.ano}</p>
-                            <p><span class="opacity-40">IPVA:</span> ${av.ipva}</p>
-                            <p><span class="opacity-40">Doc:</span> ${av.doc}</p>
+                            <p><span class="opacity-40">KM:</span> ${av.km || 'N/A'}</p>
+                            <p><span class="opacity-40">Ano:</span> ${av.ano || 'N/A'}</p>
                         </div>
-                        <div class="bg-black/40 p-3 rounded-lg text-[10px] border border-white/5 italic">"${av.detalhes || 'Sem obs.'}"</div>
                         <div class="flex flex-wrap gap-2">${fotos}</div>
-                        <a href="https://wa.me/55${av.whatsapp.replace(/\D/g,'')}" target="_blank" class="block w-full bg-green-600 text-center py-3 rounded-lg font-black text-xs uppercase hover:bg-green-500 transition">Atender via WhatsApp</a>
+                        <a href="https://wa.me/55${av.whatsapp?.replace(/\D/g,'')}" target="_blank" class="block w-full bg-green-600 text-center py-3 rounded-lg font-black text-xs uppercase">Atender WhatsApp</a>
                     </div>`;
             });
         });
 
-        // --- UTILITÁRIOS ---
+        // --- FUNÇÕES AUXILIARES ---
+        window.editarCarro = async (id) => {
+            const docRef = await getDoc(doc(db, "estoque", id));
+            if(docRef.exists()) {
+                const car = docRef.data();
+                document.getElementById('edit-id').value = id;
+                document.getElementById('marca').value = car.marca;
+                document.getElementById('nome').value = car.nome;
+                document.getElementById('modelo').value = car.modelo;
+                document.getElementById('ano').value = car.ano;
+                document.getElementById('km').value = car.km;
+                document.getElementById('preco').value = car.preco;
+                document.getElementById('tipo').value = car.tipo;
+                document.getElementById('detalhes').value = car.detalhes;
+                document.getElementById('ofertaFogo').checked = car.oferta;
+                
+                document.getElementById('formTitle').innerText = "Editando Carro";
+                document.getElementById('btnSalvar').innerText = "Atualizar Veículo";
+                document.getElementById('btnCancelarEdit').classList.remove('hidden');
+                window.scrollTo({top: 0, behavior: 'smooth'});
+            }
+        };
+
+        const resetForm = () => {
+            form.reset();
+            document.getElementById('edit-id').value = "";
+            document.getElementById('formTitle').innerText = "Novo Veículo";
+            document.getElementById('btnSalvar').innerText = "Publicar Agora";
+            document.getElementById('btnCancelarEdit').classList.add('hidden');
+        };
+
+        document.getElementById('btnCancelarEdit').onclick = resetForm;
+
         window.deletarItem = async (col, id) => {
-            if(confirm("Remover permanentemente?")) await deleteDoc(doc(db, col, id));
+            if(confirm("Deseja realmente excluir?")) await deleteDoc(doc(db, col, id));
         };
 
         window.switchTab = (tab) => {
