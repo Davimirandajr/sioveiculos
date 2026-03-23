@@ -83,7 +83,7 @@
                                 </label>
 
                                 <div class="p-4 border-2 border-dashed border-white/10 rounded-xl text-center bg-black/20">
-                                    <p class="text-[10px] uppercase font-bold mb-2 opacity-50">Fotos (Mínimo 3)</p>
+                                    <p class="text-[10px] uppercase font-bold mb-2 opacity-50">Fotos (Mínimo 6)</p>
                                     <input type="file" id="fotos" multiple accept="image/*" class="text-[10px]">
                                 </div>
                                 <button type="submit" id="btnSalvar" class="w-full bg-[#f2c94c] text-black font-black py-4 rounded-xl uppercase hover:scale-105 transition">Publicar Agora</button>
@@ -168,7 +168,7 @@
             const btn = document.getElementById('btnSalvar');
             const files = document.getElementById('fotos').files;
             
-            if(!editId && files.length < 3) return alert("Por favor, selecione ao menos 3 fotos!");
+            if(!editId && files.length < 6) return alert("Por favor, selecione ao menos 3 fotos!");
 
             btn.disabled = true; btn.innerText = "PROCESSANDO...";
 
