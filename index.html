@@ -310,13 +310,27 @@ function criarTemplateCard(car) {
 
         window.fecharModal = () => document.getElementById('modalDetalhes').classList.remove('active');
 
-        window.filtrarEstoque = () => {
-            const nome = document.getElementById('filtroNome').value.toLowerCase();
-            const tipo = document.getElementById('filtroTipo').value;
-            vitrine.innerHTML = '';
-            window.estoqueData.filter(car => car.nome.toLowerCase().includes(nome) && (tipo === "" || car.tipo === tipo)).forEach(renderCard);
-            initSwipers();
-        };
+       window.filtrarEstoque = () => {
+    const nome = document.getElementById('filtroNome').value.toLowerCase();
+    const tipo = document.getElementById('filtroTipo').value;
+    const vitrine = document.getElementById('vitrineEstoque'); // Garante a referência correta
+    
+    // Limpa a vitrine antes de repopular
+    vitrine.innerHTML = '';
+    
+    // Filtra os dados
+    const filtrados = window.estoqueData.filter(car => {
+        const matchesNome = car.nome.toLowerCase().includes(nome);
+        const matchesTipo = (tipo === "" || car.tipo === tipo);
+        return matchesNome && matchesTipo;
+    });
+
+    // Transforma os objetos filtrados em strings de HTML e injeta na vitrine
+    vitrine.innerHTML = filtrados.map(car => criarTemplateCard(car)).join('');
+    
+    // Reinicializa os Swipers para as novas imagens carregadas
+    initSwipers();
+};
 
         function initSwipers() {
             new Swiper(".mySwiper", { pagination: { el: ".swiper-pagination" }, loop: true });
