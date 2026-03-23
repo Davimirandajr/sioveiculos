@@ -94,7 +94,7 @@
             <h2 class="text-3xl font-black italic uppercase tracking-tighter">Estoque <span class="gold-text underline">Premium</span></h2>
             <button onclick="alert('Repasse: Veículos vendidos abaixo da tabela, no estado em que se encontram, sem garantia mecânica. Ideal para quem busca preço!')" class="text-[10px] text-gray-500 hover:text-white flex items-center gap-2"><i class="fa fa-question-circle"></i> O QUE É REPASSE?</button>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="vitrineEstoque"></div>
+<div class="grid grid-cols-3 md:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-8" id="vitrineEstoque"></div>
     </section>
 
     <section id="avaliar" class="py-24 bg-[#050b18] px-6 lg:px-20 border-y border-white/5">
@@ -195,28 +195,34 @@
 });
 
 // Crie esta função auxiliar para gerar o texto do HTML
+// Crie esta função auxiliar para gerar o texto do HTML Compacto
 function criarTemplateCard(car) {
     const tagClass = car.tipo === 'Repasse' ? 'tag-repasse' : 'tag-venda';
     const etiquetaTexto = car.tipo === 'Repasse' ? 'REPASSE' : 'COM GARANTIA';
     
     return `
-        <div class="bg-[#0a192f] border border-white/5 rounded-lg overflow-hidden shadow-2xl relative group cursor-pointer" onclick="abrirDetalhes('${car.id}')">
-            <div class="relative h-64 bg-gray-900 overflow-hidden">
-                <div class="${tagClass}">${etiquetaTexto}</div>
+        <div class="bg-[#0a192f] border border-white/5 rounded-md overflow-hidden shadow-2xl relative group cursor-pointer" onclick="abrirDetalhes('${car.id}')">
+            
+            <div class="relative h-20 md:h-64 bg-gray-900 overflow-hidden">
+                <div class="${tagClass}" style="font-size: 6px; padding: 2px 6px;">${etiquetaTexto}</div>
                 <img src="${car.imagens[0]}" class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
             </div>
-            <div class="p-5">
-                <h3 class="text-lg font-bold italic uppercase tracking-tighter truncate">${car.nome}</h3>
-                <div class="flex gap-4 text-[10px] text-gray-500 uppercase mt-2 font-bold italic">
+            
+            <div class="p-2 md:p-5">
+                <h3 class="text-[10px] md:text-lg font-bold italic uppercase tracking-tighter truncate leading-tight">${car.nome}</h3>
+                
+                <div class="flex gap-2 md:gap-4 text-[7px] md:text-[10px] text-gray-500 uppercase mt-1 font-bold italic">
                     <span>${car.ano}</span>
                     <span>${car.km} KM</span>
                 </div>
-                <div class="flex justify-between items-center mt-6">
+                
+                <div class="flex flex-col md:flex-row md:justify-between md:items-center mt-3 md:mt-6 gap-1 md:gap-0">
                     <div>
-                        <p class="text-[9px] text-gray-500 uppercase font-bold">VALOR</p>
-                        <p class="gold-text text-xl font-black italic">R$ ${car.preco}</p>
+                        <p class="text-[6px] md:text-[9px] text-gray-500 uppercase font-bold">VALOR</p>
+                        <p class="gold-text text-xs md:text-xl font-black italic">R$ ${car.preco}</p>
                     </div>
-                    <span class="bg-white/5 px-4 py-2 rounded text-[9px] uppercase font-bold border border-white/10 group-hover:border-yellow-500/50">+ Ver Detalhes</span>
+                    
+                    <span class="hidden md:block bg-white/5 px-4 py-2 rounded text-[9px] uppercase font-bold border border-white/10 group-hover:border-yellow-500/50">+ Ver Detalhes</span>
                 </div>
             </div>
         </div>`;
