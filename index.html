@@ -94,7 +94,7 @@
             <h2 class="text-3xl font-black italic uppercase tracking-tighter">Estoque <span class="gold-text underline">Premium</span></h2>
             <button onclick="alert('Repasse: Veículos vendidos abaixo da tabela, no estado em que se encontram, sem garantia mecânica. Ideal para quem busca preço!')" class="text-[10px] text-gray-500 hover:text-white flex items-center gap-2"><i class="fa fa-question-circle"></i> O QUE É REPASSE?</button>
         </div>
-<div class="grid grid-cols-3 md:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-8" id="vitrineEstoque"></div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8" id="vitrineEstoque"></div>
     </section>
 
     <section id="avaliar" class="py-24 bg-[#050b18] px-6 lg:px-20 border-y border-white/5">
@@ -196,31 +196,33 @@
 
 function criarTemplateCard(car) {
     const tagClass = car.tipo === 'Repasse' ? 'tag-repasse' : 'tag-venda';
-    const etiquetaTexto = car.tipo === 'Repasse' ? 'REPASSE' : 'GARANTIA'; // Encurtei o texto
+    const etiquetaTexto = car.tipo === 'Repasse' ? 'REPASSE' : 'GARANTIA SIÔ';
     
     return `
-        <div class="bg-[#0a192f] border border-white/5 rounded-sm overflow-hidden shadow-2xl relative group cursor-pointer flex flex-col h-full" onclick="abrirDetalhes('${car.id}')">
+        <div class="bg-[#0a192f] border border-white/5 rounded-xl overflow-hidden shadow-2xl relative group cursor-pointer flex flex-col h-full transition-all hover:border-yellow-500/50" onclick="abrirDetalhes('${car.id}')">
             
-            <div class="relative aspect-[4/3] md:h-64 bg-gray-900 overflow-hidden shrink-0">
-                <div class="${tagClass}" style="font-size: 5px; padding: 1px 4px; top: 0.5rem;">${etiquetaTexto}</div>
-                <img src="${car.imagens[0]}" class="w-full h-full object-cover group-hover:scale-110 transition duration-700" alt="${car.nome}">
+            <div class="relative aspect-[16/9] overflow-hidden shrink-0">
+                <div class="${tagClass} !text-[10px] !py-1 !px-4">${etiquetaTexto}</div>
+                <img src="${car.imagens[0]}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="${car.nome}">
             </div>
             
-            <div class="p-1.5 md:p-5 flex flex-col flex-grow justify-between">
+            <div class="p-5 flex flex-col flex-grow justify-between">
                 <div>
-                    <h3 class="text-[9px] md:text-lg font-bold italic uppercase tracking-tighter truncate leading-tight">${car.nome}</h3>
+                    <h3 class="text-xl font-bold italic uppercase tracking-tighter truncate text-white">${car.nome}</h3>
                     
-                    <div class="flex gap-1 md:gap-4 text-[7px] md:text-[10px] text-gray-500 uppercase mt-0.5 font-bold italic">
-                        <span>${car.ano}</span>
-                        <span class="truncate">${car.km} KM</span>
+                    <div class="flex gap-4 text-xs text-gray-400 uppercase mt-2 font-bold italic">
+                        <span><i class="fa fa-calendar-alt gold-text mr-1"></i> ${car.ano}</span>
+                        <span><i class="fa fa-tachometer-alt gold-text mr-1"></i> ${car.km} KM</span>
                     </div>
                 </div>
                 
-                <div class="mt-2 md:mt-6">
-                    <p class="text-[5px] md:text-[9px] text-gray-400 uppercase font-bold leading-none">VALOR</p>
-                    <p class="gold-text text-[10px] md:text-xl font-black italic">R$ ${car.preco}</p>
+                <div class="mt-6">
+                    <p class="text-[10px] text-gray-500 uppercase font-black leading-none mb-1">Valor à vista</p>
+                    <p class="gold-text text-2xl font-black italic">R$ ${car.preco}</p>
                     
-                    <span class="hidden md:block mt-2 bg-white/5 px-4 py-2 rounded text-[9px] uppercase font-bold border border-white/10 group-hover:border-yellow-500/50 text-center">+ Ver Detalhes</span>
+                    <div class="mt-4 bg-white/5 px-4 py-3 rounded-lg text-[10px] uppercase font-bold border border-white/10 group-hover:bg-yellow-500 group-hover:text-black transition-all text-center">
+                        Ver Detalhes e Fotos
+                    </div>
                 </div>
             </div>
         </div>`;
