@@ -16,9 +16,9 @@
         .btn-premium { background: linear-gradient(to right, #f2c94c, #ffd700); color: black; font-weight: 800; transition: 0.3s; cursor: pointer; border:none; }
         .btn-premium:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(242, 201, 76, 0.3); }
         
-        /* Tags */
-        .tag-venda { background: var(--sio-gold); color: black; font-weight: 900; clip-path: polygon(0 0, 100% 0, 85% 100%, 0% 100%); position: absolute; top: 1rem; left: 0; z-index: 20; padding: 4px 20px; font-size: 9px; }
-        .tag-repasse { background: #ef4444; color: white; font-weight: 900; clip-path: polygon(0 0, 100% 0, 85% 100%, 0% 100%); position: absolute; top: 1rem; left: 0; z-index: 20; padding: 4px 20px; font-size: 9px; }
+        /* Tags minimalistas para caber em telas minúsculas */
+        .tag-venda { background: var(--sio-gold); color: black; font-weight: 900; position: absolute; top: 0.25rem; left: 0; z-index: 20; padding: 2px 6px; font-size: 7px; border-radius: 0 4px 4px 0; }
+        .tag-repasse { background: #ef4444; color: white; font-weight: 900; position: absolute; top: 0.25rem; left: 0; z-index: 20; padding: 2px 6px; font-size: 7px; border-radius: 0 4px 4px 0; }
         
         .form-input { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 0.8rem; border-radius: 0.5rem; outline: none; width: 100%; transition: 0.3s; color: white; font-size: 14px; }
         .form-input:focus { border-color: var(--sio-gold); }
@@ -37,7 +37,12 @@
         <div class="bg-[#0a192f] w-full max-w-5xl max-h-[90vh] rounded-2xl overflow-hidden border border-white/10 flex flex-col md:flex-row relative">
             <button onclick="fecharModal()" class="absolute top-4 right-4 z-50 bg-black/50 w-10 h-10 rounded-full flex items-center justify-center hover:bg-red-500 transition"><i class="fa fa-times"></i></button>
             
-            <div class="w-full md:w-1/2 h-64 md:h-auto bg-black">
+            <div class="w-full md:w-1/2 h-64 md:h-auto bg-black relative">
+                <!-- Quadradinho para ver em Tela Cheia -->
+                <button onclick="verFotoTelaCheia()" class="absolute top-4 left-4 z-50 bg-black/70 border border-white/20 w-10 h-10 rounded-lg flex items-center justify-center hover:bg-[#f2c94c] hover:text-black transition shadow-lg" title="Ver foto em tela cheia">
+                    <i class="fa fa-expand text-sm"></i>
+                </button>
+
                 <div class="swiper modalSwiper h-full">
                     <div class="swiper-wrapper" id="modalImagens"></div>
                     <div class="swiper-pagination"></div>
@@ -60,7 +65,6 @@
         </nav>
         <div class="flex gap-2">
             <a href="https://linkbio.co/8032118YxdUf9" target="_blank" class="btn-premium px-4 py-2 text-[9px] uppercase rounded-sm">Fala com consultor</a>
-            
         </div>
     </header>
 
@@ -89,19 +93,20 @@
         </div>
     </section>
 
-    <section id="estoque" class="py-24 px-6 lg:px-20 max-w-7xl mx-auto">
-        <div class="flex justify-between items-end mb-12">
-            <h2 class="text-3xl font-black italic uppercase tracking-tighter">Estoque <span class="gold-text underline">Premium</span></h2>
-            <button onclick="alert('Repasse: Veículos vendidos abaixo da tabela, no estado em que se encontram, sem garantia mecânica. Ideal para quem busca preço!')" class="text-[10px] text-gray-500 hover:text-white flex items-center gap-2"><i class="fa fa-question-circle"></i> O QUE É REPASSE?</button>
+    <section id="estoque" class="py-24 px-2 sm:px-6 lg:px-20 max-w-[1400px] mx-auto">
+        <div class="flex justify-between items-end mb-8 px-2">
+            <h2 class="text-xl sm:text-3xl font-black italic uppercase tracking-tighter">Estoque <span class="gold-text underline">Premium</span></h2>
+            <button onclick="alert('Repasse: Veículos vendidos abaixo da tabela, no estado em que se encontram, sem garantia mecânica. Ideal para quem busca preço!')" class="text-[8px] sm:text-[10px] text-gray-500 hover:text-white flex items-center gap-1"><i class="fa fa-question-circle"></i> REPASSE?</button>
         </div>
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8" id="vitrineEstoque"></div>
+        
+        <!-- Forçado estritamente 4 colunas em qualquer tamanho de tela com gap reduzido -->
+        <div class="grid grid-cols-4 gap-1.5 sm:gap-6" id="vitrineEstoque"></div>
     </section>
 
     <section id="avaliar" class="py-24 bg-[#050b18] px-6 lg:px-20 border-y border-white/5">
         <div class="max-w-5xl mx-auto">
             <div class="text-center mb-12">
                 <h2 class="text-3xl md:text-5xl font-black italic uppercase mb-4">VENDA OU CONSIGNE SEU VEÍCULO</h2>
-               
                 <p class="text-gray-400 italic">Receba uma oferta real da Siô Veículos agora.</p>
             </div>
 
@@ -160,9 +165,9 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-    <script type="module">
+<script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBUXJgUdYaQIEKvsW2dvqN5SQNyJ-MY2v0",
@@ -176,64 +181,58 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const vitrine = document.getElementById('vitrineEstoque');
-
-        // Snapshot do Banco
-       onSnapshot(query(collection(db, "estoque"), orderBy("criadoEm", "desc")), (snapshot) => {
-    window.estoqueData = [];
-    let htmlAcumulado = ''; // Criamos uma string para guardar todos os cards
-    
-    snapshot.forEach(docSnap => {
-        const car = { id: docSnap.id, ...docSnap.data() };
-        window.estoqueData.push(car);
         
-        // Em vez de dar innerHTML em cada volta, acumulamos na string
-        htmlAcumulado += criarTemplateCard(car); 
-    });
-    
-    vitrine.innerHTML = htmlAcumulado; // Injeta todos de uma vez
-    initSwipers();
-});
+        window.swiperModalInstance = null;
 
-function criarTemplateCard(car) {
-    const tagClass = car.tipo === 'Repasse' ? 'tag-repasse' : 'tag-venda';
-    const etiquetaTexto = car.tipo === 'Repasse' ? 'REPASSE' : 'GARANTIA SIÔ';
-    
-    return `
-        <div class="bg-[#0a192f] border border-white/5 rounded-xl overflow-hidden shadow-2xl relative group cursor-pointer flex flex-col h-full transition-all hover:border-yellow-500/50" onclick="abrirDetalhes('${car.id}')">
+        onSnapshot(query(collection(db, "estoque"), orderBy("criadoEm", "desc")), (snapshot) => {
+            window.estoqueData = [];
+            let htmlAcumulado = '';
             
-            <div class="relative aspect-[16/9] overflow-hidden shrink-0">
-                <div class="${tagClass} !text-[10px] !py-1 !px-4">${etiquetaTexto}</div>
-                <img src="${car.imagens[0]}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="${car.nome}">
-            </div>
+            snapshot.forEach(docSnap => {
+                const car = { id: docSnap.id, ...docSnap.data() };
+                window.estoqueData.push(car);
+                htmlAcumulado += criarTemplateCard(car); 
+            });
             
-            <div class="p-5 flex flex-col flex-grow justify-between">
-                <div>
-                    <h3 class="text-xl font-bold italic uppercase tracking-tighter truncate text-white">${car.nome}</h3>
-                    
-                    <div class="flex gap-4 text-xs text-gray-400 uppercase mt-2 font-bold italic">
-                        <span><i class="fa fa-calendar-alt gold-text mr-1"></i> ${car.ano}</span>
-                        <span><i class="fa fa-tachometer-alt gold-text mr-1"></i> ${car.km} KM</span>
+            vitrine.innerHTML = htmlAcumulado;
+            initSwipers();
+        });
+
+        function criarTemplateCard(car) {
+            const tagClass = car.tipo === 'Repasse' ? 'tag-repasse' : 'tag-venda';
+            const etiquetaTexto = car.tipo === 'Repasse' ? 'REP' : 'CONF';
+            
+            return `
+                <div class="bg-[#0a192f] border border-white/5 rounded-md overflow-hidden shadow-2xl relative group cursor-pointer flex flex-col h-full transition-all hover:border-yellow-500/50" onclick="abrirDetalhes('${car.id}')">
+                    <div class="relative aspect-[4/3] overflow-hidden shrink-0 bg-black">
+                        <div class="${tagClass}">${etiquetaTexto}</div>
+                        <img src="${car.imagens[0]}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="${car.nome}">
                     </div>
-                </div>
-                
-                <div class="mt-6">
-                    <p class="text-[10px] text-gray-500 uppercase font-black leading-none mb-1">Valor à vista</p>
-                    <p class="gold-text text-2xl font-black italic">R$ ${car.preco}</p>
-                    
-                    <div class="mt-4 bg-white/5 px-4 py-3 rounded-lg text-[10px] uppercase font-bold border border-white/10 group-hover:bg-yellow-500 group-hover:text-black transition-all text-center">
-                        Ver Detalhes e Fotos
+                    <div class="p-1.5 sm:p-4 flex flex-col flex-grow justify-between bg-[#061224]">
+                        <div>
+                            <h3 class="text-[9px] sm:text-lg font-bold italic uppercase tracking-tighter truncate text-white leading-tight">${car.nome}</h3>
+                            <div class="flex gap-1 text-[7px] sm:text-xs text-gray-400 uppercase mt-0.5 font-semibold">
+                                <span>${car.ano}</span>
+                                <span>•</span>
+                                <span class="truncate">${car.km}K KM</span>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <p class="gold-text text-[10px] sm:text-xl font-black italic leading-none">R$ ${car.preco}</p>
+                            <div class="mt-1.5 bg-white/5 py-1 text-[7px] sm:text-[10px] uppercase font-bold border border-white/5 rounded group-hover:bg-yellow-500 group-hover:text-black transition-all text-center">
+                                Ver
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
-        </div>`;
-}
-        // PÁGINA INTERNA (MODAL)
+                </div>`;
+        }
+
         window.abrirDetalhes = (id) => {
             const car = window.estoqueData.find(c => c.id === id);
             const modal = document.getElementById('modalDetalhes');
             const imagensContainer = document.getElementById('modalImagens');
             
-            imagensContainer.innerHTML = car.imagens.map(img => `<div class="swiper-slide"><img src="${img}" class="w-full h-full object-cover"></div>`).join('');
+            imagensContainer.innerHTML = car.imagens.map(img => `<div class="swiper-slide flex items-center justify-center bg-black"><img src="${img}" class="slide-img w-full h-full object-cover"></div>`).join('');
             
             document.getElementById('modalConteudo').innerHTML = `
                 <h2 class="text-3xl font-black italic uppercase gold-text mb-1">${car.nome}</h2>
@@ -261,7 +260,7 @@ function criarTemplateCard(car) {
 
                 <div class="bg-white/5 p-6 rounded-xl border border-white/10 mb-8">
                     <h4 class="text-xs font-black uppercase mb-4 italic"><i class="fa fa-calculator mr-2 gold-text"></i> Simulação de Financiamento</h4>
-                    <input type="text" id="sim_nome" placeholder="Seu Nome" class="form-input mb-2">
+                    <input type="text" id="sim_nome" placeholder="Seu Nome" class="form-input mb-2" required>
                     <input type="text" id="sim_cpf" placeholder="CPF" class="form-input mb-2">
                     <input type="number" id="sim_entrada" placeholder="Valor da Entrada (R$)" class="form-input mb-4" oninput="calcularSimulacao('${car.preco}', this.value)">
                     <div id="resultadoSimulacao" class="hidden animate-pulse">
@@ -280,6 +279,18 @@ function criarTemplateCard(car) {
             initSwipers();
         };
 
+        window.verFotoTelaCheia = () => {
+            if (!window.swiperModalInstance) return;
+            const activeSlide = window.swiperModalInstance.slides[window.swiperModalInstance.activeIndex];
+            const img = activeSlide.querySelector('img');
+            
+            if (img) {
+                if (img.requestFullscreen) img.requestFullscreen();
+                else if (img.webkitRequestFullscreen) img.webkitRequestFullscreen();
+                else if (img.msRequestFullscreen) img.msRequestFullscreen();
+            }
+        };
+
         window.calcularSimulacao = (precoStr, entradaVal) => {
             const preco = parseFloat(precoStr.replace('.', '').replace(',', '.'));
             const entrada = parseFloat(entradaVal) || 0;
@@ -289,24 +300,47 @@ function criarTemplateCard(car) {
             if(entrada >= preco) { resDiv.classList.add('hidden'); return; }
 
             const saldo = preco - entrada;
-            const taxa = 0.0189; // 1.89% oculto
+            const taxa = 0.0189;
             const parcelas = 48;
             
-            // Fórmula PMT simplificada
             const pmt = (saldo * taxa) / (1 - Math.pow(1 + taxa, -parcelas));
             
             resTxt.innerText = `48x de R$ ${pmt.toLocaleString('pt-br', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
             resDiv.classList.remove('hidden');
         };
 
-        window.enviarWhatsApp = (id, tipo) => {
+        // NOVA FUNÇÃO: Envia para o painel Firestore e depois para o WhatsApp
+        window.enviarWhatsApp = async (id, tipo) => {
             const car = window.estoqueData.find(c => c.id === id);
             const nome = document.getElementById('sim_nome')?.value || 'Interessado';
+            const cpf = document.getElementById('sim_cpf')?.value || 'Não informado';
             const entrada = document.getElementById('sim_entrada')?.value || '0';
-            const pmt = document.getElementById('valorParcela')?.innerText || '';
+            const pmt = document.getElementById('valorParcela')?.innerText || 'Não calculado';
             
             let msg = `Olá! Tenho interesse no veículo: *${car.nome}* (${car.ano}).`;
+            
             if(tipo === 'simulacao') {
+                if(!document.getElementById('sim_nome').value) {
+                    alert('Por favor, preencha pelo menos o seu nome para simular.');
+                    return;
+                }
+
+                try {
+                    // Salva os dados na coleção "simulacoes" do Firebase
+                    await addDoc(collection(db, "simulacoes"), {
+                        clienteNome: nome,
+                        clienteCpf: cpf,
+                        valorEntrada: entrada,
+                        valorParcelas: pmt,
+                        veiculoId: car.id,
+                        veiculoNome: car.nome,
+                        criadoEm: serverTimestamp()
+                    });
+                    console.log("Simulação salva no Firebase com sucesso!");
+                } catch (error) {
+                    console.error("Erro ao salvar simulação: ", error);
+                }
+
                 msg += `\n\n*Dados da Simulação:* \nNome: ${nome}\nEntrada: R$ ${entrada}\n${pmt}\n\nGostaria de prosseguir com a análise!`;
             }
             
@@ -315,31 +349,29 @@ function criarTemplateCard(car) {
 
         window.fecharModal = () => document.getElementById('modalDetalhes').classList.remove('active');
 
-       window.filtrarEstoque = () => {
-    const nome = document.getElementById('filtroNome').value.toLowerCase();
-    const tipo = document.getElementById('filtroTipo').value;
-    const vitrine = document.getElementById('vitrineEstoque'); // Garante a referência correta
-    
-    // Limpa a vitrine antes de repopular
-    vitrine.innerHTML = '';
-    
-    // Filtra os dados
-    const filtrados = window.estoqueData.filter(car => {
-        const matchesNome = car.nome.toLowerCase().includes(nome);
-        const matchesTipo = (tipo === "" || car.tipo === tipo);
-        return matchesNome && matchesTipo;
-    });
+        window.filtrarEstoque = () => {
+            const nome = document.getElementById('filtroNome').value.toLowerCase();
+            const tipo = document.getElementById('filtroTipo').value;
+            const vitrine = document.getElementById('vitrineEstoque');
+            
+            vitrine.innerHTML = '';
+            
+            const filtrados = window.estoqueData.filter(car => {
+                const matchesNome = car.nome.toLowerCase().includes(nome);
+                const matchesTipo = (tipo === "" || car.tipo === tipo);
+                return matchesNome && matchesTipo;
+            });
 
-    // Transforma os objetos filtrados em strings de HTML e injeta na vitrine
-    vitrine.innerHTML = filtrados.map(car => criarTemplateCard(car)).join('');
-    
-    // Reinicializa os Swipers para as novas imagens carregadas
-    initSwipers();
-};
+            vitrine.innerHTML = filtrados.map(car => criarTemplateCard(car)).join('');
+            initSwipers();
+        };
 
         function initSwipers() {
             new Swiper(".mySwiper", { pagination: { el: ".swiper-pagination" }, loop: true });
-            new Swiper(".modalSwiper", { pagination: { el: ".swiper-pagination", clickable: true }, loop: true });
+            window.swiperModalInstance = new Swiper(".modalSwiper", { 
+                pagination: { el: ".swiper-pagination", clickable: true }, 
+                loop: true 
+            });
         }
     </script>
 </body>
