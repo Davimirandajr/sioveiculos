@@ -16,9 +16,9 @@
         .btn-premium { background: linear-gradient(to right, #f2c94c, #ffd700); color: black; font-weight: 800; transition: 0.3s; cursor: pointer; border:none; }
         .btn-premium:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(242, 201, 76, 0.3); }
         
-        /* Tags minimalistas para caber em telas minúsculas */
-        .tag-venda { background: var(--sio-gold); color: black; font-weight: 900; position: absolute; top: 0.25rem; left: 0; z-index: 20; padding: 2px 6px; font-size: 7px; border-radius: 0 4px 4px 0; }
-        .tag-repasse { background: #ef4444; color: white; font-weight: 900; position: absolute; top: 0.25rem; left: 0; z-index: 20; padding: 2px 6px; font-size: 7px; border-radius: 0 4px 4px 0; }
+        /* Tags */
+        .tag-venda { background: var(--sio-gold); color: black; font-weight: 900; position: absolute; top: 0.5rem; left: 0; z-index: 20; padding: 3px 10px; font-size: 8px; border-radius: 0 4px 4px 0; }
+        .tag-repasse { background: #ef4444; color: white; font-weight: 900; position: absolute; top: 0.5rem; left: 0; z-index: 20; padding: 3px 10px; font-size: 8px; border-radius: 0 4px 4px 0; }
         
         .form-input { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 0.8rem; border-radius: 0.5rem; outline: none; width: 100%; transition: 0.3s; color: white; font-size: 14px; }
         .form-input:focus { border-color: var(--sio-gold); }
@@ -95,12 +95,12 @@
 
     <section id="estoque" class="py-24 px-2 sm:px-6 lg:px-20 max-w-[1400px] mx-auto">
         <div class="flex justify-between items-end mb-8 px-2">
-            <h2 class="text-xl sm:text-3xl font-black italic uppercase tracking-tighter">Estoque <span class="gold-text underline">Premium</span></h2>
-            <button onclick="alert('Repasse: Veículos vendidos abaixo da tabela, no estado em que se encontram, sem garantia mecânica. Ideal para quem busca preço!')" class="text-[8px] sm:text-[10px] text-gray-500 hover:text-white flex items-center gap-1"><i class="fa fa-question-circle"></i> REPASSE?</button>
+            <h2 class="text-2xl sm:text-3xl font-black italic uppercase tracking-tighter">Estoque <span class="gold-text underline">Premium</span></h2>
+            <button onclick="alert('Repasse: Veículos vendidos abaixo da tabela, no estado em que se encontram, sem garantia mecânica. Ideal para quem busca preço!')" class="text-[9px] sm:text-[10px] text-gray-500 hover:text-white flex items-center gap-1"><i class="fa fa-question-circle"></i> O QUE É REPASSE?</button>
         </div>
         
-        <!-- Forçado estritamente 4 colunas em qualquer tamanho de tela com gap reduzido -->
-        <div class="grid grid-cols-4 gap-1.5 sm:gap-6" id="vitrineEstoque"></div>
+        <!-- Grid fixado estritamente em 3 colunas em qualquer tamanho de tela -->
+        <div class="grid grid-cols-3 gap-2 sm:gap-6" id="vitrineEstoque"></div>
     </section>
 
     <section id="avaliar" class="py-24 bg-[#050b18] px-6 lg:px-20 border-y border-white/5">
@@ -165,7 +165,7 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-<script type="module">
+    <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
 
@@ -200,27 +200,32 @@
 
         function criarTemplateCard(car) {
             const tagClass = car.tipo === 'Repasse' ? 'tag-repasse' : 'tag-venda';
-            const etiquetaTexto = car.tipo === 'Repasse' ? 'REP' : 'CONF';
+            const etiquetaTexto = car.tipo === 'Repasse' ? 'REPASSE' : 'GARANTIA';
             
             return `
-                <div class="bg-[#0a192f] border border-white/5 rounded-md overflow-hidden shadow-2xl relative group cursor-pointer flex flex-col h-full transition-all hover:border-yellow-500/50" onclick="abrirDetalhes('${car.id}')">
+                <div class="bg-[#0a192f] border border-white/5 rounded-lg overflow-hidden shadow-2xl relative group cursor-pointer flex flex-col h-full transition-all hover:border-yellow-500/50" onclick="abrirDetalhes('${car.id}')">
+                    
                     <div class="relative aspect-[4/3] overflow-hidden shrink-0 bg-black">
                         <div class="${tagClass}">${etiquetaTexto}</div>
                         <img src="${car.imagens[0]}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="${car.nome}">
                     </div>
-                    <div class="p-1.5 sm:p-4 flex flex-col flex-grow justify-between bg-[#061224]">
+                    
+                    <div class="p-2 sm:p-4 flex flex-col flex-grow justify-between bg-[#061224]">
                         <div>
-                            <h3 class="text-[9px] sm:text-lg font-bold italic uppercase tracking-tighter truncate text-white leading-tight">${car.nome}</h3>
-                            <div class="flex gap-1 text-[7px] sm:text-xs text-gray-400 uppercase mt-0.5 font-semibold">
+                            <h3 class="text-[11px] sm:text-lg font-bold italic uppercase tracking-tighter truncate text-white leading-tight">${car.nome}</h3>
+                            
+                            <div class="flex gap-2 text-[8px] sm:text-xs text-gray-400 uppercase mt-1 font-semibold">
                                 <span>${car.ano}</span>
                                 <span>•</span>
                                 <span class="truncate">${car.km}K KM</span>
                             </div>
                         </div>
-                        <div class="mt-2">
-                            <p class="gold-text text-[10px] sm:text-xl font-black italic leading-none">R$ ${car.preco}</p>
-                            <div class="mt-1.5 bg-white/5 py-1 text-[7px] sm:text-[10px] uppercase font-bold border border-white/5 rounded group-hover:bg-yellow-500 group-hover:text-black transition-all text-center">
-                                Ver
+                        
+                        <div class="mt-3">
+                            <p class="gold-text text-[12px] sm:text-xl font-black italic leading-none">R$ ${car.preco}</p>
+                            
+                            <div class="mt-2 bg-white/5 py-1.5 text-[8px] sm:text-[10px] uppercase font-bold border border-white/5 rounded group-hover:bg-yellow-500 group-hover:text-black transition-all text-center">
+                                Ver Mais
                             </div>
                         </div>
                     </div>
@@ -309,7 +314,6 @@
             resDiv.classList.remove('hidden');
         };
 
-        // NOVA FUNÇÃO: Envia para o painel Firestore e depois para o WhatsApp
         window.enviarWhatsApp = async (id, tipo) => {
             const car = window.estoqueData.find(c => c.id === id);
             const nome = document.getElementById('sim_nome')?.value || 'Interessado';
@@ -326,7 +330,6 @@
                 }
 
                 try {
-                    // Salva os dados na coleção "simulacoes" do Firebase
                     await addDoc(collection(db, "simulacoes"), {
                         clienteNome: nome,
                         clienteCpf: cpf,
@@ -336,7 +339,7 @@
                         veiculoNome: car.nome,
                         criadoEm: serverTimestamp()
                     });
-                    console.log("Simulação salva no Firebase com sucesso!");
+                    console.log("Simulação salva no Firebase!");
                 } catch (error) {
                     console.error("Erro ao salvar simulação: ", error);
                 }
