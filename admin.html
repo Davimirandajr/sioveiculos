@@ -17,7 +17,7 @@
         .gold-text { color: #f2c94c; }
         .img-lead { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); }
         .btn-edit { color: #f2c94c; background: rgba(242, 201, 76, 0.1); }
-        .preview-badge { position: absolute; top: 4px; left: 4px; background: rgba(0,0,0,0.75); color: #f2c94c; font-size: 9px; font-weight: 900; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(242, 201, 76, 0.3); }
+        .preview-badge { position: absolute; top: 4px; left: 4px; background: rgba(0,0,0,0.85); color: #f2c94c; font-size: 9px; font-weight: 900; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(242, 201, 76, 0.3); pointer-events: none; }
         .preview-main-badge { background: #f2c94c !important; color: black !important; }
     </style>
 </head>
@@ -85,7 +85,8 @@
                                 </label>
 
                                 <div class="p-4 border-2 border-dashed border-white/10 rounded-xl text-center bg-black/20">
-                                    <p class="text-[10px] uppercase font-bold mb-2 opacity-50">Fotos (Mínimo 6)</p>
+                                    <p class="text-[10px] uppercase font-bold mb-1 opacity-50">Fotos (Mínimo 6)</p>
+                                    <p class="text-[9px] text-[#f2c94c] mb-2 font-medium uppercase">Clique na foto para torná-la Principal</p>
                                     <input type="file" id="fotos" multiple accept="image/*" class="text-[10px] w-full">
                                     
                                     <div id="previewContainer" class="grid grid-cols-3 gap-2 mt-4 hidden"></div>
@@ -129,47 +130,75 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
+        // Armazenamento local temporário dos arquivos de imagem ativos no formulário
+        let arquivosImagensAtuais = [];
+
         // --- MÁSCARA AUTOMÁTICA DE KM ---
         const inputKm = document.getElementById('km');
         inputKm.addEventListener('input', (e) => {
-            let value = e.target.value.replace(/\D/g, ''); // Remove tudo que não for número
+            let value = e.target.value.replace(/\D/g, '');
             if(value === '') { e.target.value = ''; return; }
-            // Formata com pontos a cada 3 dígitos
             e.target.value = new Intl.NumberFormat('pt-BR').format(parseInt(value));
         });
 
-        // --- VISUALIZADOR DE ORDEM DAS FOTOS ---
+        // --- GESTÃO E RENDERIZAÇÃO DAS FOTOS SELECIONADAS ---
         const inputFotos = document.getElementById('fotos');
         const previewContainer = document.getElementById('previewContainer');
 
-        inputFotos.addEventListener('change', (e) => {
+        inputFotos.addEventListener('change', async (e) => {
+            const files = Array.from(e.target.value ? e.target.files : []);
+            arquivosImagensAtuais = [];
+            
+            for (let file of files) {
+                const base64 = await fileToBase64(file);
+                arquivosImagensAtuais.push({ file: file, base64: base64 });
+            }
+            renderizarPrevisualizacao();
+        });
+
+        const fileToBase64 = (file) => {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (e) => resolve(e.target.result);
+            });
+        };
+
+        window.definirComoPrincipal = (indexSelecionado) => {
+            if (indexSelecionado === 0) return; // Já é a principal
+            
+            // Move o item selecionado para a primeira posição (0)
+            const item = arquivosImagensAtuais.splice(indexSelecionado, 1)[0];
+            arquivosImagensAtuais.unshift(item);
+            
+            renderizarPrevisualizacao();
+        };
+
+        const renderizarPrevisualizacao = () => {
             previewContainer.innerHTML = '';
-            const files = e.target.files;
-
-            if (files.length > 0) {
+            
+            if (arquivosImagensAtuais.length > 0) {
                 previewContainer.classList.remove('hidden');
-                Array.from(files).forEach((file, index) => {
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        const div = document.createElement('div');
-                        div.className = 'relative aspect-[4/3] rounded-lg overflow-hidden border border-white/10';
-                        
-                        const isMain = index === 0;
-                        const badgeText = isMain ? '1ª (PRINCIPAL)' : `${index + 1}ª FOTO`;
-                        const badgeClass = isMain ? 'preview-badge preview-main-badge' : 'preview-badge';
+                arquivosImagensAtuais.forEach((item, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'relative aspect-[4/3] rounded-lg overflow-hidden border border-white/10 cursor-pointer hover:scale-95 transition group';
+                    div.setAttribute('onclick', `definirComoPrincipal(${index})`);
+                    
+                    const isMain = index === 0;
+                    const badgeText = isMain ? '1ª (PRINCIPAL)' : `${index + 1}ª FOTO`;
+                    const badgeClass = isMain ? 'preview-badge preview-main-badge' : 'preview-badge';
 
-                        div.innerHTML = `
-                            <img src="${event.target.result}" class="w-full h-full object-cover">
-                            <span class="${badgeClass}">${badgeText}</span>
-                        `;
-                        previewContainer.appendChild(div);
-                    };
-                    reader.readAsDataURL(file);
+                    div.innerHTML = `
+                        <img src="${item.base64}" class="w-full h-full object-cover">
+                        <span class="${badgeClass}">${badgeText}</span>
+                        ${!isMain ? '<div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition"><span class="text-[9px] font-black tracking-wider text-[#f2c94c] bg-black/80 px-2 py-1 rounded">FAZER PRINCIPAL</span></div>' : ''}
+                    `;
+                    previewContainer.appendChild(div);
                 });
             } else {
                 previewContainer.classList.add('hidden');
             }
-        });
+        };
 
         // --- AUTH ---
         document.getElementById('btnLogin').onclick = async () => {
@@ -184,24 +213,20 @@
             user ? (content.classList.remove('hidden-auth'), login.classList.add('hidden')) : (content.classList.add('hidden-auth'), login.classList.remove('hidden'));
         });
 
-        // --- COMPRESSOR ---
-        const compressImage = (file) => {
+        // --- COMPRESSOR DE IMAGENS ---
+        const compressImageFromBase64 = (base64Str) => {
             return new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = (e) => {
-                    const img = new Image();
-                    img.src = e.target.result;
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        const width = 800;
-                        const scale = width / img.width;
-                        canvas.width = width;
-                        canvas.height = img.height * scale;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, width, canvas.height);
-                        resolve(canvas.toDataURL('image/jpeg', 0.6));
-                    };
+                const img = new Image();
+                img.src = base64Str;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const width = 800;
+                    const scale = width / img.width;
+                    canvas.width = width;
+                    canvas.height = img.height * scale;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, canvas.height);
+                    resolve(canvas.toDataURL('image/jpeg', 0.6));
                 };
             });
         };
@@ -212,9 +237,8 @@
             e.preventDefault();
             const editId = document.getElementById('edit-id').value;
             const btn = document.getElementById('btnSalvar');
-            const files = document.getElementById('fotos').files;
             
-            if(!editId && files.length < 6) return alert("Por favor, selecione ao menos 6 fotos!");
+            if(!editId && arquivosImagensAtuais.length < 6) return alert("Por favor, selecione ao menos 6 fotos!");
 
             btn.disabled = true; btn.innerText = "PROCESSANDO...";
 
@@ -224,16 +248,19 @@
                     nome: document.getElementById('nome').value,
                     modelo: document.getElementById('modelo').value,
                     ano: document.getElementById('ano').value,
-                    km: document.getElementById('km').value, // Salva formatado ("12.500" ou "100.000")
+                    km: document.getElementById('km').value, 
                     preco: document.getElementById('preco').value,
                     tipo: document.getElementById('tipo').value,
                     detalhes: document.getElementById('detalhes').value,
                     oferta: document.getElementById('ofertaFogo').checked
                 };
 
-                if(files.length > 0) {
+                // Envia as fotos na ordem exata definida no painel visual
+                if(arquivosImagensAtuais.length > 0) {
                     const base64Imgs = [];
-                    for(let f of files) base64Imgs.push(await compressImage(f));
+                    for(let item of arquivosImagensAtuais) {
+                        base64Imgs.push(await compressImageFromBase64(item.base64));
+                    }
                     data.imagens = base64Imgs;
                 }
 
@@ -313,7 +340,7 @@
                 document.getElementById('nome').value = car.nome;
                 document.getElementById('modelo').value = car.modelo;
                 document.getElementById('ano').value = car.ano;
-                document.getElementById('km').value = car.km; // Carrega formatado do Firebase
+                document.getElementById('km').value = car.km; 
                 document.getElementById('preco').value = car.preco;
                 document.getElementById('tipo').value = car.tipo;
                 document.getElementById('detalhes').value = car.detalhes;
@@ -322,8 +349,16 @@
                 document.getElementById('formTitle').innerText = "Editando Carro";
                 document.getElementById('btnSalvar').innerText = "Atualizar Veículo";
                 document.getElementById('btnCancelarEdit').classList.remove('hidden');
-                previewContainer.innerHTML = '';
-                previewContainer.classList.add('hidden'); // Oculta previews antigos ao editar
+                
+                // Mapeia fotos antigas de volta para a matriz de edição se o usuário não subir novas
+                arquivosImagensAtuais = [];
+                if (car.imagens) {
+                    car.imagens.forEach(imgUrl => {
+                        arquivosImagensAtuais.push({ file: null, base64: imgUrl });
+                    });
+                    renderizarPrevisualizacao();
+                }
+                
                 window.scrollTo({top: 0, behavior: 'smooth'});
             }
         };
@@ -334,6 +369,7 @@
             document.getElementById('formTitle').innerText = "Novo Veículo";
             document.getElementById('btnSalvar').innerText = "Publicar Agora";
             document.getElementById('btnCancelarEdit').classList.add('hidden');
+            arquivosImagensAtuais = [];
             previewContainer.innerHTML = '';
             previewContainer.classList.add('hidden');
         };
