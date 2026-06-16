@@ -17,6 +17,8 @@
         .gold-text { color: #f2c94c; }
         .img-lead { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); }
         .btn-edit { color: #f2c94c; background: rgba(242, 201, 76, 0.1); }
+        .preview-badge { position: absolute; top: 4px; left: 4px; background: rgba(0,0,0,0.75); color: #f2c94c; font-size: 9px; font-weight: 900; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(242, 201, 76, 0.3); }
+        .preview-main-badge { background: #f2c94c !important; color: black !important; }
     </style>
 </head>
 <body class="pb-20">
@@ -65,7 +67,7 @@
                                 
                                 <div class="grid grid-cols-2 gap-2">
                                     <input type="text" id="ano" placeholder="Ano" class="input-admin" required>
-                                    <input type="number" id="km" placeholder="KM" class="input-admin" required>
+                                    <input type="text" id="km" placeholder="KM" class="input-admin" required>
                                 </div>
 
                                 <div class="grid grid-cols-2 gap-2">
@@ -84,7 +86,9 @@
 
                                 <div class="p-4 border-2 border-dashed border-white/10 rounded-xl text-center bg-black/20">
                                     <p class="text-[10px] uppercase font-bold mb-2 opacity-50">Fotos (Mínimo 6)</p>
-                                    <input type="file" id="fotos" multiple accept="image/*" class="text-[10px]">
+                                    <input type="file" id="fotos" multiple accept="image/*" class="text-[10px] w-full">
+                                    
+                                    <div id="previewContainer" class="grid grid-cols-3 gap-2 mt-4 hidden"></div>
                                 </div>
                                 <button type="submit" id="btnSalvar" class="w-full bg-[#f2c94c] text-black font-black py-4 rounded-xl uppercase hover:scale-105 transition">Publicar Agora</button>
                                 <button type="button" id="btnCancelarEdit" class="hidden w-full text-white/40 text-[10px] uppercase font-bold mt-2">Cancelar Edição</button>
@@ -124,6 +128,48 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
+
+        // --- MÁSCARA AUTOMÁTICA DE KM ---
+        const inputKm = document.getElementById('km');
+        inputKm.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\D/g, ''); // Remove tudo que não for número
+            if(value === '') { e.target.value = ''; return; }
+            // Formata com pontos a cada 3 dígitos
+            e.target.value = new Intl.NumberFormat('pt-BR').format(parseInt(value));
+        });
+
+        // --- VISUALIZADOR DE ORDEM DAS FOTOS ---
+        const inputFotos = document.getElementById('fotos');
+        const previewContainer = document.getElementById('previewContainer');
+
+        inputFotos.addEventListener('change', (e) => {
+            previewContainer.innerHTML = '';
+            const files = e.target.files;
+
+            if (files.length > 0) {
+                previewContainer.classList.remove('hidden');
+                Array.from(files).forEach((file, index) => {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        const div = document.createElement('div');
+                        div.className = 'relative aspect-[4/3] rounded-lg overflow-hidden border border-white/10';
+                        
+                        const isMain = index === 0;
+                        const badgeText = isMain ? '1ª (PRINCIPAL)' : `${index + 1}ª FOTO`;
+                        const badgeClass = isMain ? 'preview-badge preview-main-badge' : 'preview-badge';
+
+                        div.innerHTML = `
+                            <img src="${event.target.result}" class="w-full h-full object-cover">
+                            <span class="${badgeClass}">${badgeText}</span>
+                        `;
+                        previewContainer.appendChild(div);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            } else {
+                previewContainer.classList.add('hidden');
+            }
+        });
 
         // --- AUTH ---
         document.getElementById('btnLogin').onclick = async () => {
@@ -168,7 +214,7 @@
             const btn = document.getElementById('btnSalvar');
             const files = document.getElementById('fotos').files;
             
-            if(!editId && files.length < 6) return alert("Por favor, selecione ao menos 3 fotos!");
+            if(!editId && files.length < 6) return alert("Por favor, selecione ao menos 6 fotos!");
 
             btn.disabled = true; btn.innerText = "PROCESSANDO...";
 
@@ -178,7 +224,7 @@
                     nome: document.getElementById('nome').value,
                     modelo: document.getElementById('modelo').value,
                     ano: document.getElementById('ano').value,
-                    km: document.getElementById('km').value,
+                    km: document.getElementById('km').value, // Salva formatado ("12.500" ou "100.000")
                     preco: document.getElementById('preco').value,
                     tipo: document.getElementById('tipo').value,
                     detalhes: document.getElementById('detalhes').value,
@@ -213,10 +259,10 @@
                 container.innerHTML += `
                     <div class="bg-white/5 p-4 rounded-xl border border-white/10 flex justify-between items-center group">
                         <div class="flex items-center gap-4">
-                            <img src="${car.imagens[0]}" class="w-16 h-12 object-cover rounded-lg">
+                            <img src="${car.imagens && car.imagens[0] ? car.imagens[0] : 'https://via.placeholder.com/80'}" class="w-16 h-12 object-cover rounded-lg">
                             <div>
                                 <h4 class="font-bold text-[13px] uppercase">${car.nome}</h4>
-                                <p class="text-[10px] opacity-40 font-bold">${car.ano} • R$ ${car.preco}</p>
+                                <p class="text-[10px] opacity-40 font-bold">${car.ano} • KM: ${car.km} • R$ ${car.preco}</p>
                             </div>
                         </div>
                         <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition">
@@ -267,7 +313,7 @@
                 document.getElementById('nome').value = car.nome;
                 document.getElementById('modelo').value = car.modelo;
                 document.getElementById('ano').value = car.ano;
-                document.getElementById('km').value = car.km;
+                document.getElementById('km').value = car.km; // Carrega formatado do Firebase
                 document.getElementById('preco').value = car.preco;
                 document.getElementById('tipo').value = car.tipo;
                 document.getElementById('detalhes').value = car.detalhes;
@@ -276,6 +322,8 @@
                 document.getElementById('formTitle').innerText = "Editando Carro";
                 document.getElementById('btnSalvar').innerText = "Atualizar Veículo";
                 document.getElementById('btnCancelarEdit').classList.remove('hidden');
+                previewContainer.innerHTML = '';
+                previewContainer.classList.add('hidden'); // Oculta previews antigos ao editar
                 window.scrollTo({top: 0, behavior: 'smooth'});
             }
         };
@@ -286,6 +334,8 @@
             document.getElementById('formTitle').innerText = "Novo Veículo";
             document.getElementById('btnSalvar').innerText = "Publicar Agora";
             document.getElementById('btnCancelarEdit').classList.add('hidden');
+            previewContainer.innerHTML = '';
+            previewContainer.classList.add('hidden');
         };
 
         document.getElementById('btnCancelarEdit').onclick = resetForm;
