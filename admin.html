@@ -46,7 +46,7 @@
         <nav class="flex justify-center gap-8 bg-[#0a192f] border-b border-white/5 sticky top-[73px] z-40">
             <button onclick="switchTab('estoque')" id="btn-estoque" class="tab-btn active py-4 px-6 text-xs uppercase font-black tracking-widest">Estoque & Edição</button>
             <button onclick="switchTab('avaliacoes')" id="btn-avaliacoes" class="tab-btn py-4 px-6 text-xs uppercase font-black tracking-widest flex items-center gap-2">
-                Simulações <span id="countAv" class="bg-red-600 text-[9px] px-1.5 py-0.5 rounded-full hidden">0</span>
+                Simulações & Leads <span id="countAv" class="bg-red-600 text-[9px] px-1.5 py-0.5 rounded-full hidden">0</span>
             </button>
         </nav>
 
@@ -130,7 +130,6 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        // Armazenamento local temporário dos arquivos de imagem ativos no formulário
         let arquivosImagensAtuais = [];
 
         // --- MÁSCARA AUTOMÁTICA DE KM ---
@@ -165,12 +164,9 @@
         };
 
         window.definirComoPrincipal = (indexSelecionado) => {
-            if (indexSelecionado === 0) return; // Já é a principal
-            
-            // Move o item selecionado para a primeira posição (0)
+            if (indexSelecionado === 0) return;
             const item = arquivosImagensAtuais.splice(indexSelecionado, 1)[0];
             arquivosImagensAtuais.unshift(item);
-            
             renderizarPrevisualizacao();
         };
 
@@ -216,6 +212,11 @@
         // --- COMPRESSOR DE IMAGENS ---
         const compressImageFromBase64 = (base64Str) => {
             return new Promise((resolve) => {
+                if (base64Str.startsWith('http')) {
+                    // Se for uma URL externa (ex: carregada do banco), pula compressão
+                    resolve(base64Str);
+                    return;
+                }
                 const img = new Image();
                 img.src = base64Str;
                 img.onload = () => {
@@ -255,7 +256,7 @@
                     oferta: document.getElementById('ofertaFogo').checked
                 };
 
-                // Envia as fotos na ordem exata definida no painel visual
+                // Trata as imagens se houver itens na lista (novos ou antigos reordenados)
                 if(arquivosImagensAtuais.length > 0) {
                     const base64Imgs = [];
                     for(let item of arquivosImagensAtuais) {
@@ -300,8 +301,8 @@
             });
         });
 
-        // --- LISTAGEM LEADS (UNIFICADO) ---
-        onSnapshot(query(collection(db, "avaliacoes"), orderBy("dataEnvio", "desc")), (snapshot) => {
+        // --- LISTAGEM LEADS (UNIFICADO CORRIGIDO PARA MAPEAR COLEÇÃO 'SIMULACOES') ---
+        onSnapshot(query(collection(db, "simulacoes"), orderBy("criadoEm", "desc")), (snapshot) => {
             const container = document.getElementById('listaLeads');
             const counter = document.getElementById('countAv');
             container.innerHTML = '';
@@ -309,28 +310,45 @@
             snapshot.size > 0 ? counter.classList.remove('hidden') : counter.classList.add('hidden');
 
             snapshot.forEach(docSnap => {
-                const av = docSnap.data();
-                let fotos = '';
-                if(av.fotos) av.fotos.forEach(f => fotos += `<img src="${f}" class="img-lead">`);
+                const lead = docSnap.data();
+                
+                const rawWhatsApp = lead.whatsappContato || "";
+                const linkWhatsApp = rawWhatsApp.replace(/\D/g,'');
 
                 container.innerHTML += `
-                    <div class="card-lead p-6 space-y-4">
+                    <div class="card-lead p-6 space-y-4 bg-white/5 border border-white/10 rounded-xl">
                         <div class="flex justify-between items-start">
-                            <span class="bg-white/10 text-[8px] px-2 py-1 rounded uppercase font-black">${av.tipoLead || 'Avaliação'}</span>
-                            <button onclick="deletarItem('avaliacoes', '${docSnap.id}')" class="text-red-500 text-[10px] font-black">EXCLUIR</button>
+                            <span class="bg-[#f2c94c] text-black text-[9px] px-2 py-0.5 rounded uppercase font-black tracking-wide">
+                                ${lead.tipoLead || 'Simulação'}
+                            </span>
+                            <button onclick="deletarItem('simulacoes', '${docSnap.id}')" class="text-red-500 text-[10px] font-black hover:underline">EXCLUIR</button>
                         </div>
-                        <h4 class="gold-text font-black uppercase text-sm">${av.veiculo}</h4>
-                        <div class="grid grid-cols-2 gap-2 text-[10px] font-bold uppercase">
-                            <p><span class="opacity-40">KM:</span> ${av.km || 'N/A'}</p>
-                            <p><span class="opacity-40">Ano:</span> ${av.ano || 'N/A'}</p>
+                        
+                        <h4 class="gold-text font-black uppercase text-sm">${lead.veiculoNome || 'Veículo Não Informado'}</h4>
+                        
+                        <div class="space-y-1 text-[11px] font-medium text-gray-300">
+                            <p><span class="opacity-40 font-bold uppercase">Cliente:</span> ${lead.clienteNome || 'Não informado'}</p>
+                            ${lead.clienteCpf && lead.clienteCpf !== "N/A" ? `<p><span class="opacity-40 font-bold uppercase">CPF:</span> ${lead.clienteCpf}</p>` : ''}
+                            ${lead.valorEntrada && lead.valorEntrada !== "N/A" ? `<p><span class="opacity-40 font-bold uppercase">Entrada:</span> R$ ${lead.valorEntrada}</p>` : ''}
                         </div>
-                        <div class="flex flex-wrap gap-2">${fotos}</div>
-                        <a href="https://wa.me/55${av.whatsapp?.replace(/\D/g,'')}" target="_blank" class="block w-full bg-green-600 text-center py-3 rounded-lg font-black text-xs uppercase">Atender WhatsApp</a>
+
+                        <div class="bg-black/30 p-3 rounded border border-white/5 text-[11px]">
+                            <p class="text-gray-400 font-bold uppercase text-[9px] mb-1">Informações Adicionais / Valores</p>
+                            <p class="text-white italic">${lead.valorParcelas || 'Sem dados adicionais.'}</p>
+                        </div>
+
+                        ${linkWhatsApp ? `
+                            <a href="https://wa.me/55${linkWhatsApp}" target="_blank" class="block w-full bg-green-600 hover:bg-green-700 transition text-center py-3 rounded-lg font-black text-xs uppercase text-white">
+                                <i class="fab fa-whatsapp mr-1 text-sm"></i> Atender WhatsApp
+                            </a>
+                        ` : `
+                            <p class="text-[10px] text-center text-gray-500 italic uppercase">Contato deve ser feito pelo histórico principal</p>
+                        `}
                     </div>`;
             });
         });
 
-        // --- FUNÇÕES AUXILIARES ---
+        // --- FUNÇÕES AUXILIARES NO ESCOPO WINDOW ---
         window.editarCarro = async (id) => {
             const docRef = await getDoc(doc(db, "estoque", id));
             if(docRef.exists()) {
@@ -350,7 +368,6 @@
                 document.getElementById('btnSalvar').innerText = "Atualizar Veículo";
                 document.getElementById('btnCancelarEdit').classList.remove('hidden');
                 
-                // Mapeia fotos antigas de volta para a matriz de edição se o usuário não subir novas
                 arquivosImagensAtuais = [];
                 if (car.imagens) {
                     car.imagens.forEach(imgUrl => {
@@ -363,8 +380,22 @@
             }
         };
 
+        window.deletarItem = async (col, id) => {
+            if(confirm("Deseja realmente excluir este item permanentemente?")) {
+                await deleteDoc(doc(db, col, id));
+            }
+        };
+
+        window.switchTab = (tab) => {
+            document.querySelectorAll('section[id^="tab-"]').forEach(s => s.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`tab-${tab}`).classList.remove('hidden');
+            document.getElementById(`btn-${tab}`).classList.add('active');
+        };
+
         const resetForm = () => {
             form.reset();
+            document.getElementById('fotos').value = ""; // Limpa o input de arquivos nativo
             document.getElementById('edit-id').value = "";
             document.getElementById('formTitle').innerText = "Novo Veículo";
             document.getElementById('btnSalvar').innerText = "Publicar Agora";
@@ -375,17 +406,6 @@
         };
 
         document.getElementById('btnCancelarEdit').onclick = resetForm;
-
-        window.deletarItem = async (col, id) => {
-            if(confirm("Deseja realmente excluir?")) await deleteDoc(doc(db, col, id));
-        };
-
-        window.switchTab = (tab) => {
-            document.querySelectorAll('section[id^="tab-"]').forEach(s => s.classList.add('hidden'));
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(`tab-${tab}`).classList.remove('hidden');
-            document.getElementById(`btn-${tab}`).classList.add('active');
-        };
     </script>
 </body>
 </html>
