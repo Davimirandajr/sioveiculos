@@ -231,6 +231,77 @@
                     </div>
                 </div>`;
         }
+        // --- SALVAR AVALIAÇÃO / CONSIGNAÇÃO NO FIREBASE ---
+const formAvaliacao = document.getElementById('formAvaliacaoPortal');
+if (formAvaliacao) {
+    formAvaliacao.onsubmit = async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('btnEnviarAv');
+        btn.disabled = true;
+        btn.innerText = "ENVIANDO DADOS...";
+
+        try {
+            const inputFotos = document.getElementById('av_fotos');
+            const files = Array.from(inputFotos.files || []);
+            const base64Imgs = [];
+
+            // Função interna para converter as fotos em String Base64 comprimida
+            const fileToBase64AndCompress = (file) => {
+                return new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    reader.onload = (event) => {
+                        const img = new Image();
+                        img.src = event.target.result;
+                        img.onload = () => {
+                            const canvas = document.createElement('canvas');
+                            const maxWidth = 600; // Resolução otimizada para não travar o Firestore
+                            const scale = img.width > maxWidth ? maxWidth / img.width : 1;
+                            canvas.width = img.width * scale;
+                            canvas.height = img.height * scale;
+                            
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                            resolve(canvas.toDataURL('image/jpeg', 0.5)); // Compactação agressiva de 50%
+                        };
+                    };
+                });
+            };
+
+            // Processa todas as imagens anexadas pelo cliente
+            for (let file of files) {
+                const imgComprimida = await fileToBase64AndCompress(file);
+                base64Imgs.push(imgComprimida);
+            }
+
+            // Envia tudo organizadinho para a coleção "simulacoes" onde o painel Admin monitora
+            await addDoc(collection(db, "simulacoes"), {
+                tipoLead: "Consignação",
+                marcaModelo: document.getElementById('av_modelo').value,
+                veiculoKm: document.getElementById('av_km').value,
+                whatsappContato: document.getElementById('av_whatsapp').value,
+                opcionais: {
+                    ipvaPago: document.getElementById('av_ipva').checked,
+                    chaveReserva: document.getElementById('av_chave').checked,
+                    manual: document.getElementById('av_manual').checked,
+                    garantia: document.getElementById('av_garantia').checked
+                },
+                imagens: base64Imgs,
+                criadoEm: serverTimestamp()
+            });
+
+            alert("Proposta de consignação enviada com sucesso! Entraremos em contato via WhatsApp.");
+            formAvaliacao.reset();
+
+        } catch (error) {
+            console.error("Erro ao enviar consignação:", error);
+            alert("Houve um erro ao enviar seus dados. Tente novamente.");
+        } finally {
+            btn.disabled = false;
+            btn.innerText = "Enviar para Avaliação Agora";
+        }
+    };
+}
 
         window.abrirDetalhes = (id) => {
             const car = window.estoqueData.find(c => c.id === id);
