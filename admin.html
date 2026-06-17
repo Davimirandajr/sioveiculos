@@ -105,7 +105,7 @@
             </section>
 
             <section id="tab-avaliacoes" class="hidden">
-                <h3 class="text-sm font-black uppercase mb-6 opacity-40 italic">Leads: Avaliações e Simulações</h3>
+                <h3 class="text-sm font-black uppercase mb-6 opacity-40 italic">Leads: Avaliações, Simulações e Consignados</h3>
                 <div id="listaLeads" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
             </section>
 
@@ -132,28 +132,31 @@
 
         let arquivosImagensAtuais = [];
 
-        // --- MÁSCARA AUTOMÁTICA DE KM ---
+        // MÁSCARA KM
         const inputKm = document.getElementById('km');
-        inputKm.addEventListener('input', (e) => {
-            let value = e.target.value.replace(/\D/g, '');
-            if(value === '') { e.target.value = ''; return; }
-            e.target.value = new Intl.NumberFormat('pt-BR').format(parseInt(value));
-        });
+        if(inputKm) {
+            inputKm.addEventListener('input', (e) => {
+                let value = e.target.value.replace(/\D/g, '');
+                if(value === '') { e.target.value = ''; return; }
+                e.target.value = new Intl.NumberFormat('pt-BR').format(parseInt(value));
+            });
+        }
 
-        // --- GESTÃO E RENDERIZAÇÃO DAS FOTOS SELECIONADAS ---
+        // PREVIEW FOTOS
         const inputFotos = document.getElementById('fotos');
         const previewContainer = document.getElementById('previewContainer');
 
-        inputFotos.addEventListener('change', async (e) => {
-            const files = Array.from(e.target.value ? e.target.files : []);
-            arquivosImagensAtuais = [];
-            
-            for (let file of files) {
-                const base64 = await fileToBase64(file);
-                arquivosImagensAtuais.push({ file: file, base64: base64 });
-            }
-            renderizarPrevisualizacao();
-        });
+        if(inputFotos) {
+            inputFotos.addEventListener('change', async (e) => {
+                const files = Array.from(e.target.value ? e.target.files : []);
+                arquivosImagensAtuais = [];
+                for (let file of files) {
+                    const base64 = await fileToBase64(file);
+                    arquivosImagensAtuais.push({ file: file, base64: base64 });
+                }
+                renderizarPrevisualizacao();
+            });
+        }
 
         const fileToBase64 = (file) => {
             return new Promise((resolve) => {
@@ -171,23 +174,18 @@
         };
 
         const renderizarPrevisualizacao = () => {
+            if(!previewContainer) return;
             previewContainer.innerHTML = '';
-            
             if (arquivosImagensAtuais.length > 0) {
                 previewContainer.classList.remove('hidden');
                 arquivosImagensAtuais.forEach((item, index) => {
                     const div = document.createElement('div');
                     div.className = 'relative aspect-[4/3] rounded-lg overflow-hidden border border-white/10 cursor-pointer hover:scale-95 transition group';
                     div.setAttribute('onclick', `definirComoPrincipal(${index})`);
-                    
                     const isMain = index === 0;
-                    const badgeText = isMain ? '1ª (PRINCIPAL)' : `${index + 1}ª FOTO`;
-                    const badgeClass = isMain ? 'preview-badge preview-main-badge' : 'preview-badge';
-
                     div.innerHTML = `
                         <img src="${item.base64}" class="w-full h-full object-cover">
-                        <span class="${badgeClass}">${badgeText}</span>
-                        ${!isMain ? '<div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition"><span class="text-[9px] font-black tracking-wider text-[#f2c94c] bg-black/80 px-2 py-1 rounded">FAZER PRINCIPAL</span></div>' : ''}
+                        <span class="${isMain ? 'preview-badge preview-main-badge' : 'preview-badge'}">${isMain ? '1ª (PRINCIPAL)' : `${index + 1}ª FOTO`}</span>
                     `;
                     previewContainer.appendChild(div);
                 });
@@ -196,7 +194,7 @@
             }
         };
 
-        // --- AUTH ---
+        // AUTH
         document.getElementById('btnLogin').onclick = async () => {
             const email = document.getElementById('login-email').value;
             const senha = document.getElementById('login-senha').value;
@@ -209,11 +207,10 @@
             user ? (content.classList.remove('hidden-auth'), login.classList.add('hidden')) : (content.classList.add('hidden-auth'), login.classList.remove('hidden'));
         });
 
-        // --- COMPRESSOR DE IMAGENS ---
+        // COMPRESSOR DE IMAGENS OTIMIZADO (MAX 600px LARGURA PARA NÃO ESTOURAR O FIREBASE)
         const compressImageFromBase64 = (base64Str) => {
             return new Promise((resolve) => {
-                if (base64Str.startsWith('http')) {
-                    // Se for uma URL externa (ex: carregada do banco), pula compressão
+                if (!base64Str || base64Str.startsWith('http')) {
                     resolve(base64Str);
                     return;
                 }
@@ -221,66 +218,64 @@
                 img.src = base64Str;
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    const width = 800;
-                    const scale = width / img.width;
-                    canvas.width = width;
+                    const maxWidth = 600; // Reduzido de 800 para 600 para economizar espaço
+                    const scale = img.width > maxWidth ? maxWidth / img.width : 1;
+                    canvas.width = img.width * scale;
                     canvas.height = img.height * scale;
                     const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, canvas.height);
-                    resolve(canvas.toDataURL('image/jpeg', 0.6));
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    resolve(canvas.toDataURL('image/jpeg', 0.5)); // Qualidade em 0.5 (perfeita para web/mobile e super leve)
                 };
+                img.onerror = () => resolve(base64Str);
             });
         };
 
-        // --- SALVAR / EDITAR ---
+        // SALVAR ESTOQUE
         const form = document.getElementById('formCadastro');
-        form.onsubmit = async (e) => {
-            e.preventDefault();
-            const editId = document.getElementById('edit-id').value;
-            const btn = document.getElementById('btnSalvar');
-            
-            if(!editId && arquivosImagensAtuais.length < 6) return alert("Por favor, selecione ao menos 6 fotos!");
-
-            btn.disabled = true; btn.innerText = "PROCESSANDO...";
-
-            try {
-                let data = {
-                    marca: document.getElementById('marca').value,
-                    nome: document.getElementById('nome').value,
-                    modelo: document.getElementById('modelo').value,
-                    ano: document.getElementById('ano').value,
-                    km: document.getElementById('km').value, 
-                    preco: document.getElementById('preco').value,
-                    tipo: document.getElementById('tipo').value,
-                    detalhes: document.getElementById('detalhes').value,
-                    oferta: document.getElementById('ofertaFogo').checked
-                };
-
-                // Trata as imagens se houver itens na lista (novos ou antigos reordenados)
-                if(arquivosImagensAtuais.length > 0) {
-                    const base64Imgs = [];
-                    for(let item of arquivosImagensAtuais) {
-                        base64Imgs.push(await compressImageFromBase64(item.base64));
+        if(form) {
+            form.onsubmit = async (e) => {
+                e.preventDefault();
+                const editId = document.getElementById('edit-id').value;
+                const btn = document.getElementById('btnSalvar');
+                if(!editId && arquivosImagensAtuais.length < 6) return alert("Por favor, selecione ao menos 6 fotos!");
+                btn.disabled = true; btn.innerText = "PROCESSANDO...";
+                try {
+                    let data = {
+                        marca: document.getElementById('marca').value,
+                        nome: document.getElementById('nome').value,
+                        modelo: document.getElementById('modelo').value,
+                        ano: document.getElementById('ano').value,
+                        km: document.getElementById('km').value, 
+                        preco: document.getElementById('preco').value,
+                        tipo: document.getElementById('tipo').value,
+                        detalhes: document.getElementById('detalhes').value,
+                        oferta: document.getElementById('ofertaFogo').checked
+                    };
+                    if(arquivosImagensAtuais.length > 0) {
+                        const base64Imgs = [];
+                        for(let item of arquivosImagensAtuais) {
+                            base64Imgs.push(await compressImageFromBase64(item.base64));
+                        }
+                        data.imagens = base64Imgs;
                     }
-                    data.imagens = base64Imgs;
-                }
+                    if(editId) {
+                        await updateDoc(doc(db, "estoque", editId), data);
+                        alert("Atualizado!");
+                    } else {
+                        data.criadoEm = new Date();
+                        await addDoc(collection(db, "estoque"), data);
+                        alert("Publicado!");
+                    }
+                    resetForm();
+                } catch(err) { alert("Erro ao salvar."); }
+                btn.disabled = false;
+            };
+        }
 
-                if(editId) {
-                    await updateDoc(doc(db, "estoque", editId), data);
-                    alert("Atualizado com sucesso!");
-                } else {
-                    data.criadoEm = new Date();
-                    await addDoc(collection(db, "estoque"), data);
-                    alert("Publicado com sucesso!");
-                }
-                resetForm();
-            } catch(err) { alert("Erro ao salvar."); }
-            btn.disabled = false;
-        };
-
-        // --- LISTAGEM ESTOQUE ---
+        // REALTIME ESTOQUE
         onSnapshot(query(collection(db, "estoque"), orderBy("criadoEm", "desc")), (snapshot) => {
             const container = document.getElementById('listaEstoque');
+            if(!container) return;
             container.innerHTML = '';
             snapshot.forEach(docSnap => {
                 const car = docSnap.data();
@@ -301,10 +296,12 @@
             });
         });
 
-        // --- LISTAGEM LEADS (UNIFICADO CORRIGIDO PARA MAPEAR COLEÇÃO 'SIMULACOES') ---
+        // REALTIME LEADS (UNIFICADO E PROTEGIDO CONTRA ERROS DE FORMATO)
         onSnapshot(query(collection(db, "simulacoes"), orderBy("criadoEm", "desc")), (snapshot) => {
             const container = document.getElementById('listaLeads');
             const counter = document.getElementById('countAv');
+            if(!container) return;
+            
             container.innerHTML = '';
             counter.innerText = snapshot.size;
             snapshot.size > 0 ? counter.classList.remove('hidden') : counter.classList.add('hidden');
@@ -312,43 +309,69 @@
             snapshot.forEach(docSnap => {
                 const lead = docSnap.data();
                 
-                const rawWhatsApp = lead.whatsappContato || "";
+                // Descobre o tipo de lead baseado nos campos salvos
+                let tipo = lead.tipoLead || "";
+                if(!tipo) {
+                    tipo = (lead.precoDesejado || lead.valorDesejado || lead.marcaModelo) ? 'Consignação' : 'Simulação';
+                }
+                
+                const isConsignacao = tipo.toLowerCase().includes('consigna') || tipo.toLowerCase().includes('anuncio') || tipo.toLowerCase().includes('anuncie');
+                const rawWhatsApp = lead.whatsappContato || lead.whatsapp || lead.telefone || "";
                 const linkWhatsApp = rawWhatsApp.replace(/\D/g,'');
 
+                // Carrega imagens do cliente se existirem
+                let fotosHtml = '';
+                if (lead.imagens && Array.isArray(lead.imagens) && lead.imagens.length > 0) {
+                    fotosHtml = `
+                        <div class="mt-3">
+                            <p class="text-[9px] uppercase text-gray-400 font-bold mb-1">Fotos do veículo enviado:</p>
+                            <div class="flex gap-1.5 overflow-x-auto pb-1 max-w-full snap-x">
+                                ${lead.imagens.map(img => `<img src="${img}" class="w-12 h-12 object-cover rounded border border-white/10 snap-start flex-shrink-0">`).join('')}
+                            </div>
+                        </div>`;
+                }
+
                 container.innerHTML += `
-                    <div class="card-lead p-6 space-y-4 bg-white/5 border border-white/10 rounded-xl">
+                    <div class="card-lead p-6 space-y-4 bg-white/5 border border-white/10 rounded-xl" style="${isConsignacao ? 'border-left-color: #27ae60;' : ''}">
                         <div class="flex justify-between items-start">
-                            <span class="bg-[#f2c94c] text-black text-[9px] px-2 py-0.5 rounded uppercase font-black tracking-wide">
-                                ${lead.tipoLead || 'Simulação'}
+                            <span class="text-black text-[9px] px-2 py-0.5 rounded uppercase font-black tracking-wide" style="background-color: ${isConsignacao ? '#27ae60' : '#f2c94c'}; color: ${isConsignacao ? 'white' : 'black'};">
+                                ${tipo}
                             </span>
                             <button onclick="deletarItem('simulacoes', '${docSnap.id}')" class="text-red-500 text-[10px] font-black hover:underline">EXCLUIR</button>
                         </div>
                         
-                        <h4 class="gold-text font-black uppercase text-sm">${lead.veiculoNome || 'Veículo Não Informado'}</h4>
+                        <h4 class="font-black uppercase text-sm" style="color: ${isConsignacao ? '#27ae60' : '#f2c94c'}">
+                            ${lead.veiculoNome || lead.marcaModelo || lead.carroNome || 'Veículo Cadastrado'}
+                        </h4>
                         
                         <div class="space-y-1 text-[11px] font-medium text-gray-300">
-                            <p><span class="opacity-40 font-bold uppercase">Cliente:</span> ${lead.clienteNome || 'Não informado'}</p>
+                            <p><span class="opacity-40 font-bold uppercase">Cliente:</span> ${lead.clienteNome || lead.nome || 'Não informado'}</p>
                             ${lead.clienteCpf && lead.clienteCpf !== "N/A" ? `<p><span class="opacity-40 font-bold uppercase">CPF:</span> ${lead.clienteCpf}</p>` : ''}
+                            ${lead.ano || lead.veiculoAno ? `<p><span class="opacity-40 font-bold uppercase">Ano:</span> ${lead.ano || lead.veiculoAno}</p>` : ''}
+                            ${lead.km || lead.veiculoKm ? `<p><span class="opacity-40 font-bold uppercase">KM:</span> ${lead.km || lead.veiculoKm}</p>` : ''}
+                            ${lead.precoDesejado || lead.valorDesejado ? `<p><span class="opacity-40 font-bold uppercase">Valor Pretendido:</span> R$ ${lead.precoDesejado || lead.valorDesejado}</p>` : ''}
                             ${lead.valorEntrada && lead.valorEntrada !== "N/A" ? `<p><span class="opacity-40 font-bold uppercase">Entrada:</span> R$ ${lead.valorEntrada}</p>` : ''}
                         </div>
 
-                        <div class="bg-black/30 p-3 rounded border border-white/5 text-[11px]">
-                            <p class="text-gray-400 font-bold uppercase text-[9px] mb-1">Informações Adicionais / Valores</p>
-                            <p class="text-white italic">${lead.valorParcelas || 'Sem dados adicionais.'}</p>
-                        </div>
+                        ${lead.valorParcelas || lead.detalhes || lead.observacoes ? `
+                            <div class="bg-black/30 p-3 rounded border border-white/5 text-[11px]">
+                                <p class="text-gray-400 font-bold uppercase text-[9px] mb-1">Mensagem/Detalhes</p>
+                                <p class="text-white italic">${lead.valorParcelas || lead.detalhes || lead.observacoes}</p>
+                            </div>
+                        ` : ''}
+
+                        ${fotosHtml}
 
                         ${linkWhatsApp ? `
-                            <a href="https://wa.me/55${linkWhatsApp}" target="_blank" class="block w-full bg-green-600 hover:bg-green-700 transition text-center py-3 rounded-lg font-black text-xs uppercase text-white">
-                                <i class="fab fa-whatsapp mr-1 text-sm"></i> Atender WhatsApp
+                            <a href="https://wa.me/55${linkWhatsApp}" target="_blank" class="block w-full text-center py-3 rounded-lg font-black text-xs uppercase text-white bg-green-600 hover:bg-green-700 transition">
+                                <i class="fab fa-whatsapp mr-1 text-sm"></i> Chamar no WhatsApp
                             </a>
-                        ` : `
-                            <p class="text-[10px] text-center text-gray-500 italic uppercase">Contato deve ser feito pelo histórico principal</p>
-                        `}
+                        ` : ''}
                     </div>`;
             });
         });
 
-        // --- FUNÇÕES AUXILIARES NO ESCOPO WINDOW ---
+        // WINDOW ACTIONS
         window.editarCarro = async (id) => {
             const docRef = await getDoc(doc(db, "estoque", id));
             if(docRef.exists()) {
@@ -375,13 +398,12 @@
                     });
                     renderizarPrevisualizacao();
                 }
-                
                 window.scrollTo({top: 0, behavior: 'smooth'});
             }
         };
 
         window.deletarItem = async (col, id) => {
-            if(confirm("Deseja realmente excluir este item permanentemente?")) {
+            if(confirm("Excluir item permanentemente?")) {
                 await deleteDoc(doc(db, col, id));
             }
         };
@@ -394,18 +416,21 @@
         };
 
         const resetForm = () => {
-            form.reset();
-            document.getElementById('fotos').value = ""; // Limpa o input de arquivos nativo
+            if(form) form.reset();
+            document.getElementById('fotos').value = "";
             document.getElementById('edit-id').value = "";
             document.getElementById('formTitle').innerText = "Novo Veículo";
             document.getElementById('btnSalvar').innerText = "Publicar Agora";
             document.getElementById('btnCancelarEdit').classList.add('hidden');
             arquivosImagensAtuais = [];
-            previewContainer.innerHTML = '';
-            previewContainer.classList.add('hidden');
+            if(previewContainer) {
+                previewContainer.innerHTML = '';
+                previewContainer.classList.add('hidden');
+            }
         };
 
-        document.getElementById('btnCancelarEdit').onclick = resetForm;
+        const btnCancel = document.getElementById('btnCancelarEdit');
+        if(btnCancel) btnCancel.onclick = resetForm;
     </script>
 </body>
 </html>
